@@ -133,17 +133,22 @@ function progress_(token) {
 }
 function analytics_(token) {
   requireRole_(token, ["admin"]);
-  var rows = respRows_();
+  var rows = respRows_(), today = dayKey_(), names = nameMap_();
   var yn = function (k) { var y = 0, n = 0; rows.forEach(function (r) { if (r[k] === "Yes") y++; else if (r[k] === "No") n++; }); return { yes: y, no: n }; };
-  var symptoms = {}, reactions = { reaction_q1: {}, reaction_q2: {}, reaction_q3: {}, reaction_q4: {} }, unease = 0;
+  var symptoms = {}, reactions = { reaction_q1: {}, reaction_q2: {}, reaction_q3: {}, reaction_q4: {} };
+  var countries = {}, byArea = {}, byWorker = {}, unease = 0, todayN = 0;
   rows.forEach(function (r) {
+    if (String(r.submitted_at).slice(0, 10) === today) todayN++;
+    var ar = r.area || "(none)"; byArea[ar] = (byArea[ar] || 0) + 1;
+    var w = names[r.username] || r.username || "(unknown)"; byWorker[w] = (byWorker[w] || 0) + 1;
     String(r.q1_symptoms || "").split(";").map(function (s) { return s.trim(); }).filter(String).forEach(function (s) { symptoms[s] = (symptoms[s] || 0) + 1; });
     ["reaction_q1", "reaction_q2", "reaction_q3", "reaction_q4"].forEach(function (k) { if (r[k]) reactions[k][r[k]] = (reactions[k][r[k]] || 0) + 1; });
     ["unease_note_q1", "unease_note_q2", "unease_note_q3", "unease_note_q4"].forEach(function (k) { if (r[k]) unease++; });
+    if (r.q3_travel === "Yes") String(r.q3_travel_country || "").split(/[,;\/]/).map(function (s) { return s.trim(); }).filter(String).forEach(function (c) { countries[c] = (countries[c] || 0) + 1; });
   });
-  return { ok: true, total: rows.length,
+  return { ok: true, total: rows.length, today: todayN,
     questions: { fever: yn("q1_fever"), bleeding: yn("q2_bleeding"), travel: yn("q3_travel"), sudden_death: yn("q4_sudden_death") },
-    symptoms: symptoms, reactions: reactions, unease_notes: unease };
+    symptoms: symptoms, reactions: reactions, countries: countries, by_area: byArea, by_worker: byWorker, unease_notes: unease };
 }
 
 /* ============================== ADMIN: USERS ============================== */
@@ -209,15 +214,31 @@ function buildDashboard_(token) {
   var a = analytics_(makeToken_(t.username, "admin"));
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName("Dashboard") || ss.insertSheet("Dashboard");
   sh.clear();
-  var rows = [["HEAL-SL — Summary", ""], ["Generated", new Date().toISOString()], ["Total checkups", a.total], ["", ""],
-    ["Question", "Yes"], ["Sudden high fever (21d)", a.questions.fever.yes], ["Unstoppable bleeding (21d)", a.questions.bleeding.yes],
-    ["Recent travel (21d)", a.questions.travel.yes], ["Sudden death (4w)", a.questions.sudden_death.yes], ["", ""], ["Symptom", "Count"]];
-  Object.keys(a.symptoms).sort(function (x, y) { return a.symptoms[y] - a.symptoms[x]; }).forEach(function (s) { rows.push([s, a.symptoms[s]]); });
-  sh.getRange(1, 1, rows.length, 2).setValues(rows);
-  sh.getRange(1, 1, 1, 2).merge().setFontWeight("bold").setFontSize(14);
-  sh.getRange(5, 1, 1, 2).setFontWeight("bold"); sh.setColumnWidth(1, 280);
-  try { sh.insertChart(sh.newChart().asColumnChart().addRange(sh.getRange(5, 1, 5, 2)).setPosition(2, 4, 0, 0).setOption("title", "Yes responses by question").build()); } catch (e) {}
-  audit_(t.username, "build_dashboard", "rows=" + rows.length);
+  var R = [], bold = [];
+  function head(s) { bold.push(R.length + 1); R.push([s, ""]); }
+  function sorted(o) { return Object.keys(o).sort(function (x, y) { return o[y] - o[x]; }); }
+  head("HEAL-SL — Summary");
+  R.push(["Generated", new Date().toISOString()]); R.push(["Total checkups", a.total]); R.push(["Captured today", a.today]); R.push(["", ""]);
+  head("By area"); sorted(a.by_area).forEach(function (k) { R.push([k, a.by_area[k]]); }); if (!Object.keys(a.by_area).length) R.push(["(none)", 0]); R.push(["", ""]);
+  head("By worker"); sorted(a.by_worker).forEach(function (k) { R.push([k, a.by_worker[k]]); }); if (!Object.keys(a.by_worker).length) R.push(["(none)", 0]); R.push(["", ""]);
+  head("Questions — Yes (No)"); var qStart = R.length + 1;
+  R.push(["Sudden high fever (21d)", a.questions.fever.yes]); R.push(["Unstoppable bleeding (21d)", a.questions.bleeding.yes]);
+  R.push(["Recent travel (21d)", a.questions.travel.yes]); R.push(["Sudden death (4w)", a.questions.sudden_death.yes]);
+  var qEnd = R.length; R.push(["", ""]);
+  head("Symptoms"); var syms = sorted(a.symptoms);
+  if (syms.length) syms.forEach(function (s) { R.push([s, a.symptoms[s]]); }); else R.push(["(none)", 0]); R.push(["", ""]);
+  head("Reactions (At ease / Neutral / Uneasy)");
+  var qn = { reaction_q1: "Q1 fever", reaction_q2: "Q2 bleeding", reaction_q3: "Q3 travel", reaction_q4: "Q4 death" };
+  Object.keys(qn).forEach(function (k) { var d = a.reactions[k] || {}; R.push([qn[k], (d["At ease"] || 0) + " / " + (d["Neutral"] || 0) + " / " + (d["Uneasy"] || 0)]); });
+  R.push(["Uneasy notes captured", a.unease_notes]); R.push(["", ""]);
+  head("Countries travelled (frequency)"); var ctr = sorted(a.countries);
+  if (ctr.length) ctr.forEach(function (c) { R.push([c, a.countries[c]]); }); else R.push(["(none)", 0]);
+  sh.getRange(1, 1, R.length, 2).setValues(R);
+  bold.forEach(function (rn) { sh.getRange(rn, 1, 1, 2).setFontWeight("bold"); });
+  sh.getRange(1, 1, 1, 1).setFontSize(14);
+  sh.setColumnWidth(1, 300); sh.setColumnWidth(2, 170);
+  try { sh.insertChart(sh.newChart().asColumnChart().addRange(sh.getRange(qStart, 1, qEnd - qStart + 1, 2)).setPosition(2, 4, 0, 0).setOption("title", "Yes responses by question").build()); } catch (e) {}
+  audit_(t.username, "build_dashboard", "rows=" + R.length);
   return { ok: true, total: a.total };
 }
 

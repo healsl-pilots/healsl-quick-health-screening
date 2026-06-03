@@ -109,7 +109,8 @@
         <div class="card"><label class="field"><span>Data link (Apps Script /exec URL)</span>
           <input type="text" id="setupApi" placeholder="https://script.google.com/macros/s/…/exec" inputmode="url"></label>
           <button class="btn primary" id="setupSave">Connect</button><p class="err" id="setupErr"></p>
-          <p class="hint">Workers don't need this — scanning the install QR connects them automatically.</p></div></div>
+          <p class="hint">Workers don't need this — scanning the install QR connects them automatically.</p>
+          <button class="btn gray sm" id="setupBack" style="margin:8px auto 0;display:none">Back</button></div></div>
     </section>
 
     <!-- LOGIN -->
@@ -228,7 +229,7 @@
 const APP_VERSION="2.1";
 // Admin: paste your Apps Script /exec URL here to pre-connect EVERY install (workers then only log in).
 const CONFIG={ENDPOINT:""};
-const K={endpoint:"heal_endpoint",session:"heal_session_v2",records:"heal_records_v2",epoch:"heal_epoch",device:"heal_device",areas:"heal_areas",lastArea:"heal_last_area",draft:"heal_draft"};
+const K={endpoint:"heal_endpoint",session:"heal_session_v2",records:"heal_records_v2",epoch:"heal_epoch",device:"heal_device",areas:"heal_areas",lastArea:"heal_last_area",draft:"heal_draft",cred:"heal_cred"};
 
 const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch(e){return d;}};
 const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
@@ -263,27 +264,49 @@ function jsonp(params){return new Promise((resolve,reject)=>{const ep=endpoint()
   window[cb]=(d)=>{cleanup();resolve(d);};
   s.src=ep+(ep.indexOf("?")>=0?"&":"?")+new URLSearchParams(Object.assign({},params,{callback:cb})).toString();
   s.onerror=()=>{cleanup();reject(new Error("network"));};document.body.appendChild(s);});}
-async function api(action,params){const s=session(),p=Object.assign({action},params||{});if(s&&s.token)p.token=s.token;
+async function api(action,params){let s=session();
+  if(s&&(s.token==="OFFLINE"||!s.token)){if(!await ensureToken())throw new Error("offline");s=session();}
+  const p=Object.assign({action},params||{});if(s&&s.token)p.token=s.token;
   const d=await jsonp(p);if(d&&(d.error==="session_expired"||d.error==="unauthorized")){logout(true);throw new Error(d.error);}return d;}
 async function apiPost(action,body){const s=session();await fetch(endpoint(),{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({action,token:s&&s.token},body))});}
 
 /* ---- router ---- */
 function show(v){document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));const el=$("#v-"+v);if(el)el.classList.add("active");window.scrollTo(0,0);
   $("#hdr").classList.toggle("hide",["setup","login","locked"].indexOf(v)>=0);
+  if(v==="login")$("#lgReconnect").style.display=endpoint()?"none":"block";
+  if(v==="setup")$("#setupBack").style.display=session()?"block":"none";
   if(v==="home")renderHome();if(v==="records")renderRecords();if(v==="progress")loadProgress();
   if(v==="analysis")loadAnalysis();if(v==="users")loadUsers();if(v==="areas")loadAreasAdmin();if(v==="controls")loadControls();if(v==="share")renderShare();}
 function roleHome(){const s=session();return s&&s.role==="supervisor"?"progress":"home";}
 
 /* ---- auth ---- */
 function sessionValid(){const s=session();return s&&s.token&&s.day_key===localDay();}
+// Remembered logins on THIS device (per user) so the same user can log in offline and we
+// can silently refresh a server token when back online. PINs are low-stakes daily codes.
+const getCreds=()=>load(K.cred,{});
+function saveCred(u,pin,role,code,dn){const m=getCreds();m[u]={p:pin,role,code,display_name:dn};save(K.cred,m);}
+async function ensureToken(){let s=session();if(!s)return false;
+  if(s.token&&s.token!=="OFFLINE"&&s.day_key===localDay())return true;
+  if(!navigator.onLine)return false;const c=getCreds()[s.username];if(!c)return false;
+  try{const r=await jsonp({action:"login",username:s.username,pin:c.p});if(r&&r.ok){
+    s.token=r.token;s.day_key=r.day_key;s.role=r.role;s.code=r.code;s.display_name=r.display_name;save(K.session,s);
+    saveCred(s.username,c.p,r.role,r.code,r.display_name);save(K.areas,r.areas||getAreas());return true;}}catch(e){}
+  return false;}
 async function doLogin(){const u=$("#lgUser").value.trim().toLowerCase(),pin=$("#lgPin").value.trim();
   if(!u||!pin){$("#lgErr").textContent="Enter username and PIN.";return;}
-  if(!navigator.onLine){$("#lgErr").textContent="Need internet to log in.";return;}
   $("#lgErr").textContent="Logging in…";
-  try{const r=await jsonp({action:"login",username:u,pin});if(!r||!r.ok){$("#lgErr").textContent="Wrong username or PIN.";return;}
-    save(K.session,{token:r.token,role:r.role,username:r.username,display_name:r.display_name,code:r.code,day_key:r.day_key});
-    setEpoch(r.data_epoch||0);save(K.areas,r.areas||[]);$("#lgPin").value="";$("#lgErr").textContent="";enterApp(r.locked,r.lock_message);
-  }catch(e){$("#lgErr").textContent="Could not reach the server.";}}
+  if(navigator.onLine){
+    try{const r=await jsonp({action:"login",username:u,pin});
+      if(r&&r.ok){saveCred(u,pin,r.role,r.code,r.display_name);
+        save(K.session,{token:r.token,role:r.role,username:r.username,display_name:r.display_name,code:r.code,day_key:r.day_key});
+        setEpoch(r.data_epoch||0);save(K.areas,r.areas||[]);$("#lgPin").value="";$("#lgErr").textContent="";enterApp(r.locked,r.lock_message);return;}
+      $("#lgErr").textContent="Wrong username or PIN.";return;
+    }catch(e){/* unreachable → try offline below */}
+  }
+  const c=getCreds()[u];
+  if(c&&c.p===pin){save(K.session,{token:"OFFLINE",role:c.role,username:u,display_name:c.display_name,code:c.code,day_key:localDay()});
+    $("#lgPin").value="";$("#lgErr").textContent="";toast("Logged in offline.");enterApp(false);}
+  else{$("#lgErr").textContent=navigator.onLine?"Could not reach the server.":"Offline: no saved login for this user. Connect once online first.";}}
 function logout(silent){del(K.session);if(!silent)toast("Logged out.");buildMenu();show("login");}
 function enterApp(locked,msg){buildMenu();if(locked&&session().role!=="admin"){showLock(msg);return;}show(roleHome());checkIn();}
 function showLock(msg){$("#lockMsg").textContent=msg||"Data collection is paused.";show("locked");}
@@ -377,6 +400,7 @@ let syncing=false;
 async function syncNow(quiet){const s=session();if(!s)return;if(!endpoint()){if(!quiet)toast("Not connected.");return;}
   if(!navigator.onLine){if(!quiet)toast("No internet — will sync later.");return;}
   const mine=getRecords().filter(r=>r.username===s.username&&r._status!=="synced");if(!mine.length){if(!quiet)toast("All synced.");return;}
+  if(s.token==="OFFLINE"&&!await ensureToken()){if(!quiet)toast("Will sync when back online.");return;}
   if(syncing)return;syncing=true;
   try{await apiPost("submit",{records:mine});await delay(900);const present=new Set();
     for(const grp of chunk(mine.map(r=>r.record_id),40)){try{const res=await api("check",{ids:grp.join(",")});(res&&res.present||[]).forEach(id=>present.add(id));}catch(e){}}
@@ -409,6 +433,10 @@ async function loadAnalysis(){const body=$("#analysisBody");body.innerHTML=`<p c
     h+=`<div class="card"><b>“Yes” by question</b>`+bar("Fever",a.questions.fever.yes,t,"")+bar("Bleeding",a.questions.bleeding.yes,t,"red")+bar("Travel",a.questions.travel.yes,t,"blue")+bar("Sudden death",a.questions.sudden_death.yes,t,"red")+`</div>`;
     const syms=Object.keys(a.symptoms).sort((x,y)=>a.symptoms[y]-a.symptoms[x]),sm=syms.length?a.symptoms[syms[0]]:0;
     h+=`<div class="card"><b>Symptoms</b>${syms.length?syms.map(s=>bar(s,a.symptoms[s],sm,"amber")).join(""):'<p class="hint">None yet.</p>'}</div>`;
+    const ars=Object.keys(a.by_area||{}).sort((x,y)=>a.by_area[y]-a.by_area[x]),am=ars.length?a.by_area[ars[0]]:0;
+    h+=`<div class="card"><b>By area</b>${ars.length?ars.map(s=>bar(s,a.by_area[s],am,"blue")).join(""):'<p class="hint">—</p>'}</div>`;
+    const cts=Object.keys(a.countries||{}).sort((x,y)=>a.countries[y]-a.countries[x]),cm=cts.length?a.countries[cts[0]]:0;
+    h+=`<div class="card"><b>Countries travelled</b>${cts.length?cts.map(s=>bar(s,a.countries[s],cm,"")).join(""):'<p class="hint">None yet.</p>'}</div>`;
     const order=["At ease","Neutral","Uneasy"],qn={reaction_q1:"Q1 fever",reaction_q2:"Q2 bleeding",reaction_q3:"Q3 travel",reaction_q4:"Q4 death"};
     h+=`<div class="card"><b>Reactions</b><p class="hint" style="margin-top:2px">Uneasy notes: ${a.unease_notes}</p>`;
     Object.keys(qn).forEach(k=>{const d=a.reactions[k]||{},sum=order.reduce((x,o)=>x+(d[o]||0),0);h+=`<div style="margin:8px 0 2px;font-size:13px;color:var(--muted)">${qn[k]}</div>`+order.map(o=>bar(o,d[o]||0,sum,o==="Uneasy"?"red":"")).join("");});
@@ -446,7 +474,8 @@ function buildMenu(){const s=session();if(!s){$("#menuSheet").innerHTML="";retur
   let it=[];if(s.role==="field-worker"||s.role==="admin")it.push(["home","🏠","Home / Capture"],["records","🗂️","My records"]);
   if(s.role==="supervisor"||s.role==="admin")it.push(["progress","📊","Team progress"]);
   if(s.role==="admin")it.push(["analysis","📈","Analysis"],["users","👥","Users"],["areas","📍","Areas"],["controls","🛡️","Day controls"]);
-  it.push(["share","📲","Install & share"]);
+  if(s.role==="supervisor"||s.role==="admin")it.push(["share","📲","Install & share"]);
+  if(s.role==="admin")it.push(["setup","🔗","Data link"]);
   $("#menuSheet").innerHTML=`<h3>${esc(s.display_name||s.username)} · ${esc(s.role)}</h3>`+it.map(i=>`<div class="mitem" data-go="${i[0]}"><span class="em">${i[1]}</span> ${i[2]}</div>`).join("")+`<div class="mitem" data-act="logout" style="margin-top:8px;color:var(--red)"><span class="em">⏏</span> Log out</div>`;
   $("#menuSheet").querySelectorAll("[data-go]").forEach(m=>m.onclick=()=>{$("#menu").classList.remove("open");show(m.dataset.go);});
   $("#menuSheet").querySelector("[data-act=logout]").onclick=()=>{$("#menu").classList.remove("open");logout();};}
@@ -456,6 +485,7 @@ $("#menuBtn").onclick=()=>$("#menu").classList.add("open");
 $("#menu").onclick=(e)=>{if(e.target.id==="menu")$("#menu").classList.remove("open");};
 $("#setupSave").onclick=()=>{const v=$("#setupApi").value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(v)){$("#setupErr").textContent="Not a valid /exec link.";return;}localStorage.setItem(K.endpoint,v);$("#setupErr").textContent="";boot();};
 $("#lgReconnect").onclick=()=>{show("setup");$("#setupApi").value=endpoint();};
+$("#setupBack").onclick=()=>{if(session())show(roleHome());};
 $("#lgBtn").onclick=doLogin;$("#lgPin").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
 $("#lockRecheck").onclick=async()=>{await checkIn();try{const st=await api("status",{});if(st&&st.ok&&(!st.locked||session().role==="admin"))enterApp(false);}catch(e){}};
 $("#lockLogout").onclick=()=>logout();
