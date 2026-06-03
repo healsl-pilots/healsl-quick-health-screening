@@ -18,9 +18,7 @@
   .app{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
   header{position:sticky;top:0;z-index:20;background:var(--teal);color:#fff;padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;display:flex;align-items:center;gap:10px}
   header.hide{display:none}
-  .logo{width:30px;height:30px;border-radius:8px;background:#fff;position:relative;flex:0 0 auto}
-  .logo::before,.logo::after{content:"";position:absolute;background:var(--teal);border-radius:2px}
-  .logo::before{width:5px;height:16px;left:12.5px;top:7px}.logo::after{width:16px;height:5px;left:7px;top:12.5px}
+  .logo{width:34px;height:34px;border-radius:50%;background:#fff;flex:0 0 auto;object-fit:cover}
   header h1{font-size:15px;margin:0;font-weight:700;flex:1;line-height:1.15}
   header h1 small{display:block;font-weight:500;opacity:.85;font-size:11px}
   .who{font-size:11px;font-weight:700;background:rgba(255,255,255,.18);padding:3px 8px;border-radius:20px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -90,9 +88,7 @@
   .mitem{display:flex;align-items:center;gap:12px;padding:13px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;background:#f8fafc}.mitem:active{background:var(--teal-l)}.mitem .em{font-size:19px;width:24px;text-align:center}
   .center{min-height:80vh;display:flex;flex-direction:column;justify-content:center}
   .brand{text-align:center;margin-bottom:18px}
-  .brand .lg{width:64px;height:64px;border-radius:16px;background:var(--teal);position:relative;display:inline-block}
-  .brand .lg::before,.brand .lg::after{content:"";position:absolute;background:#fff;border-radius:3px}
-  .brand .lg::before{width:10px;height:34px;left:27px;top:15px}.brand .lg::after{width:34px;height:10px;left:15px;top:27px}
+  .brand .lg{width:104px;height:104px;border-radius:50%;display:inline-block;object-fit:cover}
   .brand h1{font-size:22px;margin:12px 0 2px}.brand p{color:var(--muted);margin:0;font-size:14px}
   #qrbox{display:flex;justify-content:center;padding:16px;background:#fff;border-radius:14px;border:1px solid var(--line)}#qrbox svg{width:240px;height:240px}
   .urlbox{word-break:break-all;font-size:13px;background:#f1f5f9;border-radius:10px;padding:10px;margin:10px 0;color:var(--muted)}
@@ -101,11 +97,11 @@
 </head>
 <body>
 <div class="app">
-  <header id="hdr" class="hide"><div class="logo"></div><h1>HEAL-SL <small>Quick Checkup</small></h1><span id="who" class="who"></span><button class="iconbtn" id="menuBtn" aria-label="Menu">☰</button></header>
+  <header id="hdr" class="hide"><img class="logo" src="icon-192.png" alt="HEAL-SL"><h1>HEAL-SL <small>Quick Checkup</small></h1><span id="who" class="who"></span><button class="iconbtn" id="menuBtn" aria-label="Menu">☰</button></header>
   <main>
     <!-- SETUP (admin only, first run) -->
     <section id="v-setup" class="view">
-      <div class="center"><div class="brand"><div class="lg"></div><h1>HEAL-SL</h1><p>Admin setup</p></div>
+      <div class="center"><div class="brand"><img class="lg" src="icon-512.png" alt="HEAL-SL"><h1>HEAL-SL</h1><p>Admin setup</p></div>
         <div class="card"><label class="field"><span>Data link (Apps Script /exec URL)</span>
           <input type="text" id="setupApi" placeholder="https://script.google.com/macros/s/…/exec" inputmode="url"></label>
           <button class="btn primary" id="setupSave">Connect</button><p class="err" id="setupErr"></p>
@@ -115,7 +111,7 @@
 
     <!-- LOGIN -->
     <section id="v-login" class="view">
-      <div class="center"><div class="brand"><div class="lg"></div><h1>HEAL-SL</h1><p>Quick Checkup</p></div>
+      <div class="center"><div class="brand"><img class="lg" src="icon-512.png" alt="HEAL-SL"><h1>HEAL-SL</h1><p>Quick Checkup</p></div>
         <div class="card">
           <label class="field"><span>Username</span><input type="text" id="lgUser" autocomplete="username" autocapitalize="none" placeholder="username"></label>
           <label class="field"><span>PIN</span><input type="password" id="lgPin" inputmode="numeric" autocomplete="current-password" placeholder="PIN"></label>
@@ -217,6 +213,7 @@
 </div>
 
 <div class="printposter" style="display:none;text-align:center;padding:40px">
+  <img src="icon-512.png" alt="HEAL-SL" style="width:120px;height:120px;border-radius:50%">
   <h1 style="font-size:34px">HEAL-SL Quick Checkup</h1><p style="font-size:18px;color:#475569">Scan to open &amp; install</p>
   <div id="posterQr" style="display:flex;justify-content:center;margin:24px 0"></div><p id="posterUrl" style="font-size:14px;color:#64748b;word-break:break-all"></p>
 </div>
@@ -444,8 +441,9 @@ async function loadAnalysis(){const body=$("#analysisBody");body.innerHTML=`<p c
 
 async function loadUsers(){const box=$("#userList");box.innerHTML=`<p class="hint" style="padding:8px">Loading…</p>`;
   try{const r=await api("listUsers",{});if(!r||!r.ok)throw r;
-    box.innerHTML=`<table class="tbl"><tr><th>Name</th><th>Role</th><th></th></tr>`+r.users.map(u=>`<tr><td>${esc(u.display_name)}<div style="font-size:11px;color:var(--muted)">@${esc(u.username)}${u.code?" · "+esc(u.code):""}</div></td><td>${esc(u.role)}${u.active?"":' <span class="pill off">off</span>'}</td><td class="n"><button class="btn ${u.active?'gray':'soft'} sm" data-t="${esc(u.username)}" data-a="${u.active?'0':'1'}">${u.active?'Disable':'Enable'}</button></td></tr>`).join("")+`</table>`;
+    box.innerHTML=`<table class="tbl"><tr><th>Name</th><th>Role</th><th></th></tr>`+r.users.map(u=>`<tr><td>${esc(u.display_name)}<div style="font-size:11px;color:var(--muted)">@${esc(u.username)}${u.code?" · "+esc(u.code):""}</div></td><td>${esc(u.role)}${u.active?"":' <span class="pill off">off</span>'}</td><td class="n" style="white-space:nowrap"><button class="btn gray sm" data-pin="${esc(u.username)}">PIN</button> <button class="btn ${u.active?'gray':'soft'} sm" data-t="${esc(u.username)}" data-a="${u.active?'0':'1'}">${u.active?'Disable':'Enable'}</button></td></tr>`).join("")+`</table>`;
     box.querySelectorAll("[data-t]").forEach(b=>b.onclick=async()=>{try{await api("setUserActive",{username:b.dataset.t,active:b.dataset.a==="1"});toast("Updated.");loadUsers();}catch(e){toast("Failed.");}});
+    box.querySelectorAll("[data-pin]").forEach(b=>b.onclick=async()=>{const np=(prompt("New PIN for @"+b.dataset.pin+" (4–8 digits):")||"").trim();if(!np)return;if(!/^\d{4,8}$/.test(np)){toast("PIN must be 4–8 digits.");return;}try{await apiPost("resetPin",{username:b.dataset.pin,pin:np});await delay(700);toast("PIN reset for @"+b.dataset.pin);}catch(e){toast("Failed.");}});
   }catch(e){box.innerHTML=`<p class="hint" style="padding:8px">${navigator.onLine?"Could not load.":"Offline."}</p>`;}}
 async function saveUser(){const name=$("#nuName").value.trim(),user=$("#nuUser").value.trim().toLowerCase(),code=$("#nuCode").value.trim(),role=$("#nuRole").value,pin=$("#nuPin").value.trim();
   if(!/^[a-z0-9._-]{3,20}$/.test(user)){$("#nuErr").textContent="Username 3–20 chars (a–z, 0–9, . _ -).";return;}

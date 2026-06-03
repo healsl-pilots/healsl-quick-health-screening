@@ -63,6 +63,7 @@ function handle_(e, action) {
       case "listUsers":     out = listUsers_(tok_(p, body)); break;
       case "createUser":    out = createUser_(tok_(p, body), body); break;
       case "setUserActive": out = setUserActive_(tok_(p, body), body.username, body.active); break;
+      case "resetPin":      out = resetPin_(tok_(p, body), body.username, body.pin); break;
       case "setAreas":      out = setAreas_(tok_(p, body), body.areas); break;
       case "setLock":       out = setLock_(tok_(p, body), body.locked, body.message); break;
       case "clearDevices":  out = clearDevices_(tok_(p, body)); break;
@@ -181,6 +182,17 @@ function setUserActive_(token, username, active) {
   if (i < 1) return { ok: false, error: "not_found" };
   sh.getRange(i, USER_HEADERS.indexOf("active") + 1).setValue(active ? "TRUE" : "FALSE");
   audit_(t.username, "user_active", username + "=" + (active ? "on" : "off"));
+  return { ok: true };
+}
+function resetPin_(token, username, pin) {
+  var t = requireRole_(token, ["admin"]); username = String(username || "").toLowerCase();
+  if (!/^\d{4,8}$/.test(String(pin || ""))) return { ok: false, error: "bad_pin" };
+  var sh = sheet_(USER_SHEET, USER_HEADERS), i = findRowIndex_(sh, "username", username);
+  if (i < 1) return { ok: false, error: "not_found" };
+  var salt = Utilities.getUuid();
+  sh.getRange(i, USER_HEADERS.indexOf("salt") + 1).setValue(salt);
+  sh.getRange(i, USER_HEADERS.indexOf("pin_hash") + 1).setValue(hashPin_(pin, salt));
+  audit_(t.username, "reset_pin", username);
   return { ok: true };
 }
 
@@ -315,4 +327,17 @@ function setup() {
   }
   audit_("setup", "init", "ready");
   return "Setup complete. Admin user: " + BOOTSTRAP_ADMIN.username;
+}
+
+// RESCUE: run this in the editor if the admin is locked out (forgot the admin PIN).
+// It resets the admin's PIN to whatever BOOTSTRAP_ADMIN.pin currently is.
+function resetAdminPin() {
+  var sh = sheet_(USER_SHEET, USER_HEADERS), i = findRowIndex_(sh, "username", BOOTSTRAP_ADMIN.username);
+  if (i < 1) { setup(); return "Admin created with PIN from BOOTSTRAP_ADMIN."; }
+  var salt = Utilities.getUuid();
+  sh.getRange(i, USER_HEADERS.indexOf("salt") + 1).setValue(salt);
+  sh.getRange(i, USER_HEADERS.indexOf("pin_hash") + 1).setValue(hashPin_(BOOTSTRAP_ADMIN.pin, salt));
+  sh.getRange(i, USER_HEADERS.indexOf("active") + 1).setValue("TRUE");
+  audit_("editor", "reset_admin_pin", BOOTSTRAP_ADMIN.username);
+  return "Admin PIN reset to BOOTSTRAP_ADMIN.pin for " + BOOTSTRAP_ADMIN.username;
 }
