@@ -361,7 +361,7 @@ function renderStep(){const key=STEPS[stepIx];$("#progBar").style.width=(stepIx/
   else if(key==="q4"){const y=draft.q4_sudden_death==="Yes";c.innerHTML=`<div class="card"><div class="qnum">Question 4 of 4</div>
     <div class="qtext">In the past 4 weeks, did anyone <b>die suddenly</b> after some of these symptoms (fever, bleeding, vomiting …)?</div>${yesNo("q4_sudden_death",draft.q4_sudden_death)}
     <div id="x" style="${y?'':'display:none'}"><label class="field"><span>How many?</span><input type="number" min="0" id="f_q4c" value="${esc(draft.q4_death_count)}" inputmode="numeric"></label></div>${reactBlock("reaction_q4")}</div>`;}
-  else if(key==="review"){c.innerHTML=`<div class="card"><div class="qnum">Review &amp; save</div><div class="qtext" style="font-size:18px">Check answers</div><div class="rev">
+  else if(key==="review"){sanitizeDraft();c.innerHTML=`<div class="card"><div class="qnum">Review &amp; save</div><div class="qtext" style="font-size:18px">Check answers</div><div class="rev">
     ${rl("ID",draft.household_id)}${rl("Area",draft.area||"—")}
     ${rl("Fever (21d)",yn(draft.q1_fever,draft.q1_fever_count))}${draft.q1_symptoms.length?rl("Symptoms",draft.q1_symptoms.join(", ")):""}
     ${rl("Bleeding (21d)",yn(draft.q2_bleeding,draft.q2_bleeding_count))}
@@ -372,7 +372,7 @@ function renderStep(){const key=STEPS[stepIx];$("#progBar").style.width=(stepIx/
   $("#backBtn").textContent=stepIx===0?"Cancel":"Back";$("#nextBtn").textContent=key==="review"?"✔ Save":"Next";bindStep(key);saveDraft();}
 
 function bindStep(key){
-  $("#step").querySelectorAll("[data-set]").forEach(el=>el.onclick=()=>{draft[el.dataset.set]=el.dataset.val;captureStep(key);renderStep();});
+  $("#step").querySelectorAll("[data-set]").forEach(el=>el.onclick=()=>{const name=el.dataset.set,val=el.dataset.val;draft[name]=val;captureStep(key);clearDependents(name,val);renderStep();});
   $("#step").querySelectorAll("[data-react]").forEach(el=>el.onclick=()=>{captureStep(key);const k=el.dataset.react;draft[k]=(draft[k]===el.dataset.val)?"":el.dataset.val;if(draft[k]!=="Uneasy")draft["unease_note_"+k.split("_").pop()]="";renderStep();});
   $("#step").querySelectorAll("[data-sym]").forEach(el=>el.onclick=()=>{const s=el.dataset.sym,i=draft.q1_symptoms.indexOf(s);if(i>=0)draft.q1_symptoms.splice(i,1);else draft.q1_symptoms.push(s);el.classList.toggle("sel");saveDraft();});
   $("#step").addEventListener("input",()=>{captureStep(key);saveDraft();});}
@@ -383,8 +383,23 @@ function captureStep(key){const g=(id)=>{const e=$("#"+id);return e?e.value.trim
   if(key==="q3"){const n=g("f_q3n");if(n!==undefined)draft.q3_travel_count=n;const cy=g("f_q3country");if(cy!==undefined)draft.q3_travel_country=cy;const v=g("f_q3d");if(v!==undefined)draft.q3_travel_date=v;note("q3");}
   if(key==="q4"){const v=g("f_q4c");if(v!==undefined)draft.q4_death_count=v;note("q4");}
   if(key==="review"){const v=g("f_notes");if(v!==undefined)draft.notes=v;}}
+// Wipe a question's sub-answers the moment its Yes/No gate is no longer "Yes".
+function clearDependents(name,val){
+  if(val==="Yes")return;
+  if(name==="q1_fever"){draft.q1_fever_count="";draft.q1_symptoms=[];}
+  else if(name==="q2_bleeding"){draft.q2_bleeding_count="";}
+  else if(name==="q3_travel"){draft.q3_travel_count="";draft.q3_travel_country="";draft.q3_travel_date="";}
+  else if(name==="q4_sudden_death"){draft.q4_death_count="";}
+}
+// Final safety net before saving: no sub-answer survives a non-Yes gate.
+function sanitizeDraft(){
+  if(draft.q1_fever!=="Yes"){draft.q1_fever_count="";draft.q1_symptoms=[];}
+  if(draft.q2_bleeding!=="Yes"){draft.q2_bleeding_count="";}
+  if(draft.q3_travel!=="Yes"){draft.q3_travel_count="";draft.q3_travel_country="";draft.q3_travel_date="";}
+  if(draft.q4_sudden_death!=="Yes"){draft.q4_death_count="";}
+}
 function validateStep(key){const m={q1:"q1_fever",q2:"q2_bleeding",q3:"q3_travel",q4:"q4_sudden_death"};if(m[key]&&!draft[m[key]]){toast("Please choose No or Yes.");return false;}return true;}
-function submitDraft(){draft.submitted_at=new Date().toISOString();
+function submitDraft(){sanitizeDraft();draft.submitted_at=new Date().toISOString();
   const recs=getRecords();recs.push(draft);setRecords(recs);              // persist BEFORE anything else
   setSeq(draft.username,getSeq(draft.username)+1);del(K.draft);
   $("#doneId").textContent="ID: "+draft.household_id;show("done");autoSync();}
