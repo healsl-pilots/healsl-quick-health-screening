@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#0d9488" />
 <title>HEAL-SL Health Quick Checkup</title>
 <link rel="manifest" href="manifest.webmanifest" />
-<link rel="icon" href="icon-192.png" />
-<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" href="healsl.png" />
+<link rel="apple-touch-icon" href="healsl.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <style>
   :root{--teal:#0d9488;--teal-d:#0f766e;--teal-l:#ccfbf1;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f8fafc;--card:#fff;
@@ -97,11 +97,11 @@
 </head>
 <body>
 <div class="app">
-  <header id="hdr" class="hide"><img class="logo" src="icon-192.png" alt="HEAL-SL"><h1>HEAL-SL <small>Quick Checkup</small></h1><span id="who" class="who"></span><button class="iconbtn" id="menuBtn" aria-label="Menu">☰</button></header>
+  <header id="hdr" class="hide"><img class="logo" id="logoBtn" src="healsl.png" alt="Home" title="Home" style="cursor:pointer"><h1>HEAL-SL <small>Quick Checkup</small></h1><span id="who" class="who"></span><button class="iconbtn" id="menuBtn" aria-label="Menu">☰</button></header>
   <main>
     <!-- SETUP (admin only, first run) -->
     <section id="v-setup" class="view">
-      <div class="center"><div class="brand"><img class="lg" src="icon-512.png" alt="HEAL-SL"><h1>HEAL-SL</h1><p>Admin setup</p></div>
+      <div class="center"><div class="brand"><img class="lg" src="healsl.png" alt="HEAL-SL"><h1>HEAL-SL</h1><p>Admin setup</p></div>
         <div class="card"><label class="field"><span>Data link (Apps Script /exec URL)</span>
           <input type="text" id="setupApi" placeholder="https://script.google.com/macros/s/…/exec" inputmode="url"></label>
           <button class="btn primary" id="setupSave">Connect</button><p class="err" id="setupErr"></p>
@@ -111,7 +111,7 @@
 
     <!-- LOGIN -->
     <section id="v-login" class="view">
-      <div class="center"><div class="brand"><img class="lg" src="icon-512.png" alt="HEAL-SL"><h1>HEAL-SL</h1><p>Quick Checkup</p></div>
+      <div class="center"><div class="brand"><img class="lg" src="healsl.png" alt="HEAL-SL"><h1>HEAL-SL</h1><p>Quick Checkup</p></div>
         <div class="card">
           <label class="field"><span>Username</span><input type="text" id="lgUser" autocomplete="username" autocapitalize="none" placeholder="username"></label>
           <label class="field"><span>PIN</span><input type="password" id="lgPin" inputmode="numeric" autocomplete="current-password" placeholder="PIN"></label>
@@ -213,7 +213,7 @@
 </div>
 
 <div class="printposter" style="display:none;text-align:center;padding:40px">
-  <img src="icon-512.png" alt="HEAL-SL" style="width:120px;height:120px;border-radius:50%">
+  <img src="healsl.png" alt="HEAL-SL" style="width:120px;height:120px;border-radius:50%">
   <h1 style="font-size:34px">HEAL-SL Quick Checkup</h1><p style="font-size:18px;color:#475569">Scan to open &amp; install</p>
   <div id="posterQr" style="display:flex;justify-content:center;margin:24px 0"></div><p id="posterUrl" style="font-size:14px;color:#64748b;word-break:break-all"></p>
 </div>
@@ -479,6 +479,7 @@ function buildMenu(){const s=session();if(!s){$("#menuSheet").innerHTML="";retur
   $("#menuSheet").querySelector("[data-act=logout]").onclick=()=>{$("#menu").classList.remove("open");logout();};}
 
 /* ---- bindings ---- */
+$("#logoBtn").onclick=()=>{if(session())show(roleHome());};
 $("#menuBtn").onclick=()=>$("#menu").classList.add("open");
 $("#menu").onclick=(e)=>{if(e.target.id==="menu")$("#menu").classList.remove("open");};
 $("#setupSave").onclick=()=>{const v=$("#setupApi").value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(v)){$("#setupErr").textContent="Not a valid /exec link.";return;}localStorage.setItem(K.endpoint,v);$("#setupErr").textContent="";boot();};

@@ -1,12 +1,11 @@
 /* HEAL-SL Health Quick Checkup — offline app shell */
-const CACHE = "heal-sl-v7";
+const CACHE = "heal-sl-v8";
 const SHELL = [
   "./",
   "index.html",
   "qrcode.min.js",
   "manifest.webmanifest",
-  "icon-192.png",
-  "icon-512.png"
+  "healsl.png"
 ];
 
 self.addEventListener("install", (e) => {
