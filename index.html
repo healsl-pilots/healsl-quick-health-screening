@@ -9,178 +9,191 @@
 <link rel="icon" href="icon-192.png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <style>
   :root{
     --teal:#0d9488; --teal-d:#0f766e; --teal-l:#ccfbf1;
     --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; --card:#fff;
     --amber:#b45309; --amber-bg:#fffbeb; --green:#15803d; --red:#b91c1c; --red-bg:#fef2f2;
-    --r:16px; --tap:60px;
+    --blue:#1d4ed8; --r:16px; --tap:58px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
-  body{
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-    color:var(--ink);background:var(--bg);
-    font-size:17px;line-height:1.45;
-    padding-bottom:env(safe-area-inset-bottom);
-  }
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);
+    background:var(--bg);font-size:17px;line-height:1.45;padding-bottom:env(safe-area-inset-bottom)}
   .app{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
-  /* Header */
-  header{
-    position:sticky;top:0;z-index:20;background:var(--teal);color:#fff;
-    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
-    display:flex;align-items:center;gap:10px;box-shadow:0 1px 0 rgba(0,0,0,.08)
-  }
-  header .logo{width:30px;height:30px;border-radius:8px;background:#fff;position:relative;flex:0 0 auto}
-  header .logo::before,header .logo::after{content:"";position:absolute;background:var(--teal);border-radius:2px}
-  header .logo::before{width:5px;height:16px;left:12.5px;top:7px}
-  header .logo::after{width:16px;height:5px;left:7px;top:12.5px}
-  header h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;flex:1}
-  header h1 small{display:block;font-weight:500;opacity:.85;font-size:11.5px;letter-spacing:.3px}
-  .iconbtn{background:rgba(255,255,255,.16);border:0;color:#fff;width:40px;height:40px;border-radius:10px;font-size:20px;cursor:pointer;display:grid;place-items:center}
+  header{position:sticky;top:0;z-index:20;background:var(--teal);color:#fff;
+    padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;display:flex;align-items:center;gap:10px}
+  header.hide{display:none}
+  .logo{width:30px;height:30px;border-radius:8px;background:#fff;position:relative;flex:0 0 auto}
+  .logo::before,.logo::after{content:"";position:absolute;background:var(--teal);border-radius:2px}
+  .logo::before{width:5px;height:16px;left:12.5px;top:7px}
+  .logo::after{width:16px;height:5px;left:7px;top:12.5px}
+  header h1{font-size:15px;margin:0;font-weight:700;flex:1;line-height:1.15}
+  header h1 small{display:block;font-weight:500;opacity:.85;font-size:11px}
+  .who{font-size:11px;font-weight:700;background:rgba(255,255,255,.18);padding:3px 8px;border-radius:20px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .iconbtn{background:rgba(255,255,255,.16);border:0;color:#fff;width:38px;height:38px;border-radius:10px;font-size:19px;cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
   .iconbtn:active{background:rgba(255,255,255,.3)}
-  /* Net pill */
-  .net{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,.18)}
-  .net.off{background:#fde68a;color:#7c2d12}
   main{flex:1;padding:16px}
   .view{display:none;animation:fade .18s ease}
   .view.active{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  /* Cards & buttons */
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px}
   .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:var(--tap);
-    border:0;border-radius:14px;font-size:18px;font-weight:700;cursor:pointer;padding:14px}
-  .btn.primary{background:var(--teal);color:#fff}
-  .btn.primary:active{background:var(--teal-d)}
+    border:0;border-radius:14px;font-size:18px;font-weight:700;cursor:pointer;padding:13px}
+  .btn.primary{background:var(--teal);color:#fff}.btn.primary:active{background:var(--teal-d)}
   .btn.ghost{background:#fff;color:var(--teal-d);border:2px solid var(--teal)}
   .btn.soft{background:var(--teal-l);color:var(--teal-d)}
   .btn.gray{background:#eef2f6;color:var(--ink)}
+  .btn.danger{background:var(--red-bg);color:var(--red);border:2px solid #fecaca}
+  .btn.sm{min-height:44px;font-size:15px;border-radius:11px;width:auto;padding:8px 14px}
   .btn:disabled{opacity:.5}
-  .row{display:flex;gap:10px}
-  .row .btn{flex:1}
+  .row{display:flex;gap:10px}.row>*{flex:1}
   .stat{display:flex;gap:10px;margin:10px 0 4px}
   .stat .box{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
   .stat .box b{display:block;font-size:26px;line-height:1.1;color:var(--teal-d)}
   .stat .box span{font-size:12px;color:var(--muted)}
-  .stat .box.warn b{color:var(--amber)}
-  /* Form */
+  .stat .box.warn b{color:var(--amber)}.stat .box.red b{color:var(--red)}
   .qnum{font-size:13px;font-weight:700;color:var(--teal-d);letter-spacing:.5px;text-transform:uppercase}
   .qtext{font-size:21px;font-weight:700;margin:6px 0 16px;line-height:1.3}
   .opt{display:flex;align-items:center;gap:12px;min-height:var(--tap);border:2px solid var(--line);
     border-radius:14px;padding:10px 14px;margin-bottom:10px;cursor:pointer;background:#fff;font-size:18px}
   .opt input{width:24px;height:24px;accent-color:var(--teal);flex:0 0 auto}
-  .opt.sel{border-color:var(--teal);background:var(--teal-l)}
-  .opt .lbl{flex:1}
+  .opt.sel{border-color:var(--teal);background:var(--teal-l)}.opt .lbl{flex:1}
   .sub{margin:14px 0 4px;font-size:15px;font-weight:600;color:var(--muted)}
   label.field{display:block;margin:12px 0}
   label.field span{display:block;font-size:14px;color:var(--muted);margin-bottom:6px}
-  input[type=text],input[type=number],input[type=date],textarea,input.txt{
+  input[type=text],input[type=number],input[type=date],input[type=password],input[type=tel],textarea,select{
     width:100%;min-height:52px;border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:17px;font-family:inherit;background:#fff;color:var(--ink)}
-  input:focus,textarea:focus{outline:none;border-color:var(--teal)}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--teal)}
   textarea{min-height:84px}
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{border:2px solid var(--line);border-radius:30px;padding:9px 14px;font-size:15px;cursor:pointer;background:#fff;min-height:46px;display:flex;align-items:center}
   .chip.sel{border-color:var(--teal);background:var(--teal-l);color:var(--teal-d);font-weight:600}
-  /* Reaction */
   .react{margin-top:18px;border-top:1px dashed var(--line);padding-top:14px}
   .react .rlab{font-size:13.5px;color:var(--muted);margin-bottom:8px}
   .faces{display:flex;gap:10px}
   .face{flex:1;border:2px solid var(--line);border-radius:14px;padding:10px 4px;text-align:center;cursor:pointer;background:#fff}
-  .face .e{font-size:30px;line-height:1}
-  .face .t{font-size:12.5px;color:var(--muted);margin-top:4px}
-  .face.sel{border-color:var(--teal);background:var(--teal-l)}
-  .face.sel .t{color:var(--teal-d);font-weight:700}
-  /* Progress */
+  .face .e{font-size:30px;line-height:1}.face .t{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .face.sel{border-color:var(--teal);background:var(--teal-l)}.face.sel .t{color:var(--teal-d);font-weight:700}
   .prog{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:14px}
-  .prog > i{display:block;height:100%;background:var(--teal);width:0;transition:width .25s}
-  .navrow{display:flex;gap:10px;margin-top:8px}
-  .navrow .btn{flex:1}
-  /* Review */
-  .rev{font-size:15px}
-  .rev .line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
-  .rev .line span:first-child{color:var(--muted)}
-  .rev .line b{text-align:right}
+  .prog>i{display:block;height:100%;background:var(--teal);width:0;transition:width .25s}
+  .navrow{display:flex;gap:10px;margin-top:8px}.navrow>*{flex:1}
+  .rev .line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+  .rev .line span:first-child{color:var(--muted)}.rev .line b{text-align:right}
   .flag{border-radius:14px;padding:14px;margin:6px 0 14px;font-weight:600}
   .flag.follow{background:var(--red-bg);color:var(--red);border:1px solid #fecaca}
   .flag.routine{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0}
-  /* Records */
   .rec{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:#fff}
-  .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
-  .dot.s{background:var(--green)} .dot.p{background:var(--amber)}
-  .rec .meta{flex:1;min-width:0}
-  .rec .meta b{font-size:14px} .rec .meta span{display:block;font-size:12px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}.dot.s{background:var(--green)}.dot.p{background:var(--amber)}
+  .rec .meta{flex:1;min-width:0}.rec .meta b{font-size:14px}.rec .meta span{display:block;font-size:12px;color:var(--muted)}
   .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
-  .tag.f{background:var(--red-bg);color:var(--red)} .tag.r{background:#f0fdf4;color:var(--green)}
-  /* QR */
-  #qrbox{display:flex;justify-content:center;padding:16px;background:#fff;border-radius:14px;border:1px solid var(--line)}
-  #qrbox svg, #qrbox img{width:240px;height:240px}
-  .urlbox{word-break:break-all;font-size:13px;background:#f1f5f9;border-radius:10px;padding:10px;margin:10px 0;color:var(--muted)}
-  /* Toast */
-  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
-    background:var(--ink);color:#fff;padding:12px 18px;border-radius:30px;font-size:14px;font-weight:600;
-    opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:90%;text-align:center}
-  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .tag.f{background:var(--red-bg);color:var(--red)}.tag.r{background:#f0fdf4;color:var(--green)}
+  table.tbl{width:100%;border-collapse:collapse;font-size:14px}
+  table.tbl th,table.tbl td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+  table.tbl th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  table.tbl td.n,table.tbl th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .bar{margin:8px 0}
+  .bar .bl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px}
+  .bar .bt{background:var(--line);border-radius:6px;height:12px;overflow:hidden}
+  .bar .bf{height:100%;background:var(--teal);border-radius:6px}
+  .bar.red .bf{background:var(--red)} .bar.blue .bf{background:var(--blue)} .bar.amber .bf{background:var(--amber)}
+  h2.sec{font-size:16px;margin:20px 0 8px}
   .hint{font-size:13px;color:var(--muted);margin-top:6px}
-  .err{color:var(--red);font-size:14px;margin-top:6px;display:none}
-  .err.show{display:block}
-  /* Menu sheet */
-  #menu{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:50;display:none}
-  #menu.open{display:block}
-  #menu .sheet{position:absolute;right:0;top:0;height:100%;width:78%;max-width:320px;background:#fff;padding:16px;
-    box-shadow:-8px 0 24px rgba(0,0,0,.2);display:flex;flex-direction:column;gap:8px}
-  #menu .sheet h3{margin:6px 4px 10px;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-  .mitem{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;background:#f8fafc}
-  .mitem:active{background:var(--teal-l)}
-  .mitem .em{font-size:20px}
-  @media print{
-    header,.iconbtn,.navrow,#menu,.btn{display:none!important}
-    body{background:#fff}
-    .printposter{display:block!important}
-  }
+  .err{color:var(--red);font-size:14px;margin-top:8px;min-height:1px}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--teal-l);color:var(--teal-d)}
+  .pill.off{background:#fee2e2;color:var(--red)}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
+    padding:12px 18px;border-radius:30px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:90%;text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #menu{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:50;display:none}#menu.open{display:block}
+  #menu .sheet{position:absolute;right:0;top:0;height:100%;width:80%;max-width:320px;background:#fff;padding:16px;overflow:auto;
+    box-shadow:-8px 0 24px rgba(0,0,0,.2);display:flex;flex-direction:column;gap:6px}
+  #menu h3{margin:6px 4px 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .mitem{display:flex;align-items:center;gap:12px;padding:13px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;background:#f8fafc}
+  .mitem:active{background:var(--teal-l)}.mitem .em{font-size:19px;width:24px;text-align:center}
+  .center{min-height:80vh;display:flex;flex-direction:column;justify-content:center}
+  .brand{text-align:center;margin-bottom:18px}
+  .brand .lg{width:64px;height:64px;border-radius:16px;background:var(--teal);position:relative;display:inline-block}
+  .brand .lg::before,.brand .lg::after{content:"";position:absolute;background:#fff;border-radius:3px}
+  .brand .lg::before{width:10px;height:34px;left:27px;top:15px}.brand .lg::after{width:34px;height:10px;left:15px;top:27px}
+  .brand h1{font-size:22px;margin:12px 0 2px}.brand p{color:var(--muted);margin:0;font-size:14px}
+  #qrbox{display:flex;justify-content:center;padding:16px;background:#fff;border-radius:14px;border:1px solid var(--line)}
+  #qrbox svg{width:240px;height:240px}
+  .urlbox{word-break:break-all;font-size:13px;background:#f1f5f9;border-radius:10px;padding:10px;margin:10px 0;color:var(--muted)}
+  @media print{header,.iconbtn,.navrow,#menu,.btn{display:none!important}body{background:#fff}.printposter{display:block!important}}
 </style>
 </head>
 <body>
 <div class="app">
-  <header>
-    <div class="logo" aria-hidden="true"></div>
+  <header id="hdr" class="hide">
+    <div class="logo"></div>
     <h1>HEAL-SL <small>Health Quick Checkup</small></h1>
-    <span id="net" class="net">●</span>
+    <span id="who" class="who"></span>
     <button class="iconbtn" id="menuBtn" aria-label="Menu">☰</button>
   </header>
 
   <main>
-    <!-- HOME -->
-    <section id="v-home" class="view active">
+    <!-- SETUP: endpoint -->
+    <section id="v-setup" class="view">
+      <div class="center"><div class="brand"><div class="lg"></div><h1>HEAL-SL</h1><p>Connect to your data sheet</p></div>
+        <div class="card">
+          <label class="field"><span>Google Sheet API link (from your admin)</span>
+            <input type="text" id="setupApi" placeholder="https://script.google.com/macros/s/…/exec" inputmode="url"></label>
+          <button class="btn primary" id="setupSave">Connect</button>
+          <p class="err" id="setupErr"></p>
+          <p class="hint">Tip: scanning the install QR connects this automatically.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOGIN -->
+    <section id="v-login" class="view">
+      <div class="center"><div class="brand"><div class="lg"></div><h1>HEAL-SL</h1><p>Health Quick Checkup</p></div>
+        <div class="card">
+          <label class="field"><span>Username</span><input type="text" id="lgUser" autocomplete="username" autocapitalize="none" placeholder="e.g. akamara"></label>
+          <label class="field"><span>PIN</span><input type="password" id="lgPin" inputmode="numeric" autocomplete="current-password" placeholder="4-digit PIN"></label>
+          <button class="btn primary" id="lgBtn">Log in</button>
+          <p class="err" id="lgErr"></p>
+          <p class="hint">Log in once each day while online; the app then works offline all day.</p>
+        </div>
+        <button class="btn gray sm" id="lgReconnect" style="margin:0 auto">Change data link</button>
+      </div>
+    </section>
+
+    <!-- LOCKED -->
+    <section id="v-locked" class="view">
+      <div class="center" style="text-align:center">
+        <div style="font-size:54px">🔒</div>
+        <h2 id="lockTitle">Access paused</h2>
+        <p class="hint" id="lockMsg" style="max-width:340px;margin:8px auto"></p>
+        <button class="btn soft" id="lockRecheck" style="max-width:240px;margin:14px auto 0">Check again</button>
+        <button class="btn gray sm" id="lockLogout" style="margin:12px auto 0">Log out</button>
+      </div>
+    </section>
+
+    <!-- FIELD-WORKER / ADMIN-CAPTURE HOME -->
+    <section id="v-home" class="view">
       <div class="stat">
-        <div class="box"><b id="stToday">0</b><span>Today</span></div>
-        <div class="box"><b id="stTotal">0</b><span>Saved</span></div>
+        <div class="box"><b id="stToday">0</b><span>My today</span></div>
+        <div class="box"><b id="stTotal">0</b><span>My saved</span></div>
         <div class="box warn"><b id="stPending">0</b><span>To sync</span></div>
       </div>
-      <button class="btn primary" id="startBtn" style="margin:14px 0;font-size:20px;min-height:72px">＋ Start new checkup</button>
+      <button class="btn primary" id="startBtn" style="margin:14px 0;font-size:20px;min-height:70px">＋ Start new checkup</button>
       <button class="btn soft" id="syncBtn">⟳ Sync to Google Sheet</button>
       <p class="hint" id="syncHint" style="text-align:center"></p>
     </section>
 
-    <!-- FORM -->
+    <!-- FORM WIZARD -->
     <section id="v-form" class="view">
       <div class="prog"><i id="progBar"></i></div>
       <div id="step"></div>
-      <div class="navrow">
-        <button class="btn gray" id="backBtn">Back</button>
-        <button class="btn primary" id="nextBtn">Next</button>
-      </div>
+      <div class="navrow"><button class="btn gray" id="backBtn">Back</button><button class="btn primary" id="nextBtn">Next</button></div>
     </section>
 
     <!-- DONE -->
     <section id="v-done" class="view">
-      <div class="card" style="text-align:center">
-        <div style="font-size:54px">✅</div>
-        <h2 style="margin:6px 0">Checkup saved</h2>
-        <p class="hint" id="doneId"></p>
-        <div id="doneFlag"></div>
-        <div id="doneSync" class="hint"></div>
-      </div>
+      <div class="card" style="text-align:center"><div style="font-size:54px">✅</div>
+        <h2 style="margin:6px 0">Checkup saved</h2><p class="hint" id="doneId"></p><div id="doneFlag"></div></div>
       <button class="btn primary" id="againBtn">＋ Start another</button>
       <button class="btn soft" id="doneSyncBtn" style="margin-top:10px">⟳ Sync now</button>
       <button class="btn gray" id="doneHomeBtn" style="margin-top:10px">Home</button>
@@ -189,59 +202,77 @@
     <!-- RECORDS -->
     <section id="v-records" class="view">
       <div class="stat">
-        <div class="box"><b id="rcTotal">0</b><span>Saved</span></div>
+        <div class="box"><b id="rcTotal">0</b><span>My saved</span></div>
         <div class="box warn"><b id="rcPending">0</b><span>To sync</span></div>
-        <div class="box"><b id="rcFlag">0</b><span>Follow-up</span></div>
+        <div class="box red"><b id="rcFlag">0</b><span>Follow-up</span></div>
       </div>
-      <div class="row" style="margin:10px 0">
-        <button class="btn soft" id="rcSync">⟳ Sync</button>
-        <button class="btn ghost" id="rcExport">⬇ Export CSV</button>
-      </div>
+      <div class="row" style="margin:10px 0"><button class="btn soft" id="rcSync">⟳ Sync</button><button class="btn ghost" id="rcExport">⬇ Export CSV</button></div>
       <div id="recList"></div>
-      <button class="btn gray" id="rcClear" style="margin-top:10px">Clear synced records</button>
       <p class="hint">Records stay on this device until synced. Export keeps a backup even with no internet.</p>
     </section>
 
-    <!-- SETTINGS -->
-    <section id="v-settings" class="view">
+    <!-- SUPERVISOR / ADMIN PROGRESS -->
+    <section id="v-progress" class="view">
+      <h2 class="sec" style="margin-top:4px">Team progress <span class="pill" id="progDay"></span></h2>
+      <div class="stat"><div class="box"><b id="pgTotal">0</b><span>Total checkups</span></div><div class="box"><b id="pgWorkers">0</b><span>Workers</span></div></div>
+      <div class="card" style="padding:6px 12px"><div id="progTable"></div></div>
+      <button class="btn soft" id="progRefresh">⟳ Refresh</button>
+      <p class="hint" id="progHint" style="text-align:center"></p>
+    </section>
+
+    <!-- ADMIN ANALYSIS -->
+    <section id="v-analysis" class="view">
+      <h2 class="sec" style="margin-top:4px">Analysis</h2>
+      <div id="analysisBody"><p class="hint">Loading…</p></div>
+      <div class="row" style="margin-top:10px"><button class="btn soft" id="anRefresh">⟳ Refresh</button><button class="btn ghost" id="anDash">🧾 Build Sheet tab</button></div>
+    </section>
+
+    <!-- ADMIN USERS -->
+    <section id="v-users" class="view">
+      <h2 class="sec" style="margin-top:4px">Users</h2>
+      <div id="userList" class="card" style="padding:6px 12px"></div>
       <div class="card">
-        <label class="field"><span>Google Sheet sync link (Apps Script /exec URL)</span>
-          <input type="text" id="setApi" placeholder="https://script.google.com/macros/s/…/exec" inputmode="url"></label>
-        <button class="btn soft" id="testBtn" style="min-height:48px">Test connection</button>
-        <p class="err" id="setApiErr"></p>
-        <p class="hint">Leave blank to work offline-only and export CSV. See the setup guide to create this link.</p>
+        <b>Add / update user</b>
+        <label class="field"><span>Full name</span><input type="text" id="nuName" placeholder="e.g. Aminata Kamara"></label>
+        <label class="field"><span>Username (lowercase, no spaces)</span><input type="text" id="nuUser" autocapitalize="none" placeholder="e.g. akamara"></label>
+        <label class="field"><span>Role</span>
+          <select id="nuRole"><option value="field-worker">Field worker</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option></select></label>
+        <label class="field"><span>PIN (4–8 digits)</span><input type="tel" id="nuPin" inputmode="numeric" placeholder="set a PIN"></label>
+        <button class="btn primary" id="nuSave">Save user</button>
+        <p class="err" id="nuErr"></p>
+      </div>
+    </section>
+
+    <!-- ADMIN DAY CONTROLS -->
+    <section id="v-controls" class="view">
+      <h2 class="sec" style="margin-top:4px">Day controls</h2>
+      <div class="card">
+        <b>Access</b>
+        <p class="hint">Status: <span id="lockState" class="pill">…</span></p>
+        <label class="field"><span>Message shown when paused (optional)</span><input type="text" id="lockMessage" placeholder="e.g. Collection paused for the day"></label>
+        <div class="row"><button class="btn danger" id="btnLock">⏸ Pause access</button><button class="btn soft" id="btnUnlock">▶ Resume access</button></div>
+        <p class="hint">Logins also expire automatically at the end of each day, even on offline phones.</p>
       </div>
       <div class="card">
-        <label class="field"><span>Screener name (optional)</span><input type="text" id="setScreener" placeholder="e.g. A. Kamara"></label>
-        <label class="field"><span>Community / area (optional)</span><input type="text" id="setCommunity" placeholder="e.g. Waterloo"></label>
-        <label class="field"><span>Device label (optional)</span><input type="text" id="setDevice" placeholder="e.g. Phone-03"></label>
-        <label class="opt" style="margin-top:4px"><input type="checkbox" id="setGps"><span class="lbl">Attach GPS location to each checkup</span></label>
+        <b>End of day — clean devices</b>
+        <p class="hint">Tells every device to upload anything pending, then erase local data. Unsynced data is never deleted.</p>
+        <button class="btn danger" id="btnClear">🧹 Clean all devices now</button>
       </div>
-      <button class="btn primary" id="saveSet">Save settings</button>
-      <button class="btn gray" id="setHome" style="margin-top:10px">Home</button>
     </section>
 
     <!-- INSTALL / SHARE -->
     <section id="v-share" class="view">
-      <div class="card">
-        <h2 style="margin:0 0 6px">Install &amp; share</h2>
-        <p class="hint">Scan to open and install this app on another phone. If a sync link is set, it is shared too — the new phone is ready instantly.</p>
-        <div id="qrbox" style="margin-top:12px"></div>
-        <div class="urlbox" id="shareUrl"></div>
+      <div class="card"><h2 style="margin:0 0 6px">Install &amp; share</h2>
+        <p class="hint">Scan to open &amp; install on another phone. The data link is included, so the new phone only needs a login.</p>
+        <div id="qrbox" style="margin-top:12px"></div><div class="urlbox" id="shareUrl"></div>
         <button class="btn soft" id="copyUrl">⧉ Copy link</button>
         <button class="btn ghost" id="printBtn" style="margin-top:10px">🖨 Print poster</button>
       </div>
-      <div class="card">
-        <b>Install on this phone</b>
-        <p class="hint" id="installHint">In your browser menu, choose <b>“Add to Home screen”</b> / <b>“Install app”</b>.</p>
-        <button class="btn primary" id="installBtn" style="display:none">⬇ Install app</button>
-      </div>
-      <button class="btn gray" id="shareHome">Home</button>
+      <button class="btn gray" id="shareHome">Back</button>
     </section>
   </main>
 </div>
 
-<!-- Printable poster -->
 <div class="printposter" style="display:none;text-align:center;padding:40px">
   <h1 style="font-size:34px">HEAL-SL Health Quick Checkup</h1>
   <p style="font-size:18px;color:#475569">Scan with your phone camera to open &amp; install</p>
@@ -249,442 +280,418 @@
   <p id="posterUrl" style="font-size:14px;color:#64748b;word-break:break-all"></p>
 </div>
 
-<!-- Menu -->
-<div id="menu"><div class="sheet">
-  <h3>Menu</h3>
-  <div class="mitem" data-go="home"><span class="em">🏠</span> Home</div>
-  <div class="mitem" data-go="records"><span class="em">🗂️</span> Records &amp; export</div>
-  <div class="mitem" data-go="share"><span class="em">📲</span> Install &amp; share (QR)</div>
-  <div class="mitem" data-go="settings"><span class="em">⚙️</span> Settings</div>
-</div></div>
-
+<div id="menu"><div class="sheet" id="menuSheet"></div></div>
 <div id="toast"></div>
 
 <script src="qrcode.min.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "1.0";
-const LS_REC = "heal_records_v1";
-const LS_SET = "heal_settings_v1";
+const APP_VERSION="2.0";
+const K={endpoint:"heal_endpoint",session:"heal_session_v2",records:"heal_records_v2",epoch:"heal_epoch",device:"heal_device",community:"heal_last_community"};
 
-/* ---------- Question model (generic household health screening) ---------- */
-const SYMPTOMS = [
-  "Bad headache","Body pain (muscles/joints)","Very tired or weak (cannot get out of bed)",
-  "Difficulty swallowing","Difficulty breathing","Vomiting","Diarrhoea","Stomach pain",
-  "Hiccups that will not stop","Miscarriage or stillbirth","Refused all food for >24h"
-];
-const REACTIONS = [
-  {v:"At ease", e:"🙂"}, {v:"Neutral", e:"😐"}, {v:"Uneasy", e:"😟"}
-];
+/* ---------- storage ---------- */
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch(e){return d;}};
+const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const del=(k)=>localStorage.removeItem(k);
+const endpoint=()=>localStorage.getItem(K.endpoint)||"";
+const session=()=>load(K.session,null);
+const getRecords=()=>load(K.records,[]);
+const setRecords=(r)=>save(K.records,r);
+const getEpoch=()=>parseInt(localStorage.getItem(K.epoch)||"0",10);
+const setEpoch=(n)=>localStorage.setItem(K.epoch,String(n));
+function deviceId(){let d=localStorage.getItem(K.device);if(!d){d="dev-"+Math.random().toString(36).slice(2,8);localStorage.setItem(K.device,d);}return d;}
 
-/* ---------- Storage ---------- */
-const load = (k,d)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } };
-const save = (k,v)=> localStorage.setItem(k, JSON.stringify(v));
-const getRecords = ()=> load(LS_REC, []);
-const setRecords = (r)=> save(LS_REC, r);
-const getSettings = ()=> load(LS_SET, {api:"",screener:"",community:"",device:"",gps:false});
-const setSettings = (s)=> save(LS_SET, s);
+/* ---------- util ---------- */
+const $=(s)=>document.querySelector(s);
+const uid=()=>"r-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
+const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const localDay=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+const isToday=(iso)=>String(iso||"").slice(0,10)===localDay();
+const delay=(ms)=>new Promise(r=>setTimeout(r,ms));
+const chunk=(a,n)=>{const o=[];for(let i=0;i<a.length;i+=n)o.push(a.slice(i,i+n));return o;};
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),2800);}
 
-/* ---------- Helpers ---------- */
-const $ = (s)=>document.querySelector(s);
-const uid = ()=> 'r-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
-const isToday = (iso)=> new Date(iso).toDateString() === new Date().toDateString();
-function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2600); }
-function show(view){ document.querySelectorAll(".view").forEach(v=>v.classList.remove("active")); $("#v-"+view).classList.add("active"); window.scrollTo(0,0); if(view==="records") renderRecords(); if(view==="settings") fillSettings(); if(view==="share") renderShare(); if(view==="home") renderHome(); }
-
-/* ---------- Network indicator ---------- */
-function netUI(){ const on=navigator.onLine; const n=$("#net"); n.textContent=on?"online":"offline"; n.classList.toggle("off",!on); }
-window.addEventListener("online", ()=>{netUI(); autoSync();});
-window.addEventListener("offline", netUI);
-
-/* ---------- Wizard ---------- */
-let draft = null, stepIx = 0;
-const STEPS = ["intro","q1","q2","q3","q4","review"];
-
-function newDraft(){
-  const s = getSettings();
-  return {
-    record_id: uid(), submitted_at:null, app_version:APP_VERSION,
-    device_label:s.device||"", screener_name:s.screener||"", community:s.community||"",
-    household_id:"",
-    q1_fever:"", q1_fever_count:"", q1_symptoms:[],
-    q2_bleeding:"", q2_bleeding_count:"",
-    q3_travel:"", q3_travel_date:"",
-    q4_sudden_death:"", q4_death_count:"",
-    reaction_q1:"", reaction_q2:"", reaction_q3:"", reaction_q4:"",
-    unease_note_q1:"", unease_note_q2:"", unease_note_q3:"", unease_note_q4:"",
-    gps_lat:"", gps_lng:"", notes:"", triage_flag:"", _status:"pending"
-  };
-}
-function startForm(){ draft=newDraft(); stepIx=0; show("form"); renderStep(); }
-
-function yesNo(name, val){
-  return `<div class="opt ${val==='No'?'sel':''}" data-set="${name}" data-val="No">
-      <input type="radio" ${val==='No'?'checked':''}><span class="lbl">No</span></div>
-    <div class="opt ${val==='Yes'?'sel':''}" data-set="${name}" data-val="Yes">
-      <input type="radio" ${val==='Yes'?'checked':''}><span class="lbl">Yes</span></div>`;
-}
-function reactBlock(qkey){
-  const cur = draft[qkey];
-  const suf = qkey.split("_").pop();              // q1 … q4
-  const noteKey = "unease_note_"+suf;
-  const noteBox = cur==="Uneasy"
-    ? `<label class="field" style="margin-top:12px"><span>What made them uneasy? <em>(optional)</em></span>
-        <textarea id="f_note_${suf}" placeholder="Note the concern, in their words if possible…">${esc(draft[noteKey]||"")}</textarea></label>`
-    : "";
-  return `<div class="react"><div class="rlab">Respondent's reaction to this question <em>(optional)</em></div>
-    <div class="faces">${REACTIONS.map(r=>`<div class="face ${cur===r.v?'sel':''}" data-react="${qkey}" data-val="${r.v}">
-       <div class="e">${r.e}</div><div class="t">${r.v}</div></div>`).join("")}</div>${noteBox}</div>`;
-}
-
-function renderStep(){
-  const key = STEPS[stepIx];
-  $("#progBar").style.width = (stepIx/(STEPS.length-1)*100)+"%";
-  const c = $("#step");
-  if(key==="intro"){
-    c.innerHTML = `<div class="card">
-      <div class="qnum">New checkup</div>
-      <div class="qtext">Household details</div>
-      <label class="field"><span>Household ID (optional)</span><input type="text" id="f_hh" value="${esc(draft.household_id)}" placeholder="e.g. HH-014"></label>
-      <label class="field"><span>Community / area</span><input type="text" id="f_comm" value="${esc(draft.community)}" placeholder="e.g. Waterloo"></label>
-      <p class="hint">All answers are about <b>anyone in this household</b> in the period stated.</p>
-    </div>`;
-  } else if(key==="q1"){
-    const yes = draft.q1_fever==="Yes";
-    c.innerHTML = `<div class="card">
-      <div class="qnum">Question 1 of 4</div>
-      <div class="qtext">Has anyone in this household had a <b>sudden high fever</b> in the past 21 days (3 weeks)?</div>
-      ${yesNo("q1_fever", draft.q1_fever)}
-      <div id="q1extra" style="${yes?'':'display:none'}">
-        <label class="field"><span>How many people?</span><input type="number" min="0" id="f_q1c" value="${esc(draft.q1_fever_count)}" inputmode="numeric"></label>
-        <div class="sub">Did they also have any of these at the same time? (tap all that apply)</div>
-        <div class="chips">${SYMPTOMS.map(s=>`<div class="chip ${draft.q1_symptoms.includes(s)?'sel':''}" data-sym="${esc(s)}">${s}</div>`).join("")}</div>
-      </div>
-      ${reactBlock("reaction_q1")}
-    </div>`;
-  } else if(key==="q2"){
-    const yes = draft.q2_bleeding==="Yes";
-    c.innerHTML = `<div class="card">
-      <div class="qnum">Question 2 of 4</div>
-      <div class="qtext">In the past 21 days, has anyone had <b>bleeding that would not stop</b> (gums, nose, eyes, vomit, stool, urine, skin, vagina, or injection sites)?</div>
-      ${yesNo("q2_bleeding", draft.q2_bleeding)}
-      <div id="q2extra" style="${yes?'':'display:none'}">
-        <label class="field"><span>How many people?</span><input type="number" min="0" id="f_q2c" value="${esc(draft.q2_bleeding_count)}" inputmode="numeric"></label>
-      </div>
-      ${reactBlock("reaction_q2")}
-    </div>`;
-  } else if(key==="q3"){
-    const yes = draft.q3_travel==="Yes";
-    c.innerHTML = `<div class="card">
-      <div class="qnum">Question 3 of 4</div>
-      <div class="qtext">In the past 21 days, did anyone <b>travel to or return from another country</b>?</div>
-      ${yesNo("q3_travel", draft.q3_travel)}
-      <div id="q3extra" style="${yes?'':'display:none'}">
-        <label class="field"><span>Date travelled</span><input type="date" id="f_q3d" value="${esc(draft.q3_travel_date)}"></label>
-      </div>
-      ${reactBlock("reaction_q3")}
-    </div>`;
-  } else if(key==="q4"){
-    const yes = draft.q4_sudden_death==="Yes";
-    c.innerHTML = `<div class="card">
-      <div class="qnum">Question 4 of 4</div>
-      <div class="qtext">In the past 4 weeks, has anyone <b>died suddenly</b> after having some of these symptoms (fever, bleeding, vomiting)?</div>
-      ${yesNo("q4_sudden_death", draft.q4_sudden_death)}
-      <div id="q4extra" style="${yes?'':'display:none'}">
-        <label class="field"><span>How many people?</span><input type="number" min="0" id="f_q4c" value="${esc(draft.q4_death_count)}" inputmode="numeric"></label>
-      </div>
-      ${reactBlock("reaction_q4")}
-    </div>`;
-  } else if(key==="review"){
-    draft.triage_flag = computeFlag(draft);
-    c.innerHTML = `<div class="card">
-      <div class="qnum">Review &amp; submit</div>
-      <div class="qtext" style="font-size:18px">Check the answers</div>
-      <div class="rev">
-        ${revLine("Household", draft.household_id||"—")}
-        ${revLine("Fever (21d)", fmtYN(draft.q1_fever, draft.q1_fever_count))}
-        ${draft.q1_symptoms.length?revLine("Symptoms", draft.q1_symptoms.join(", ")):""}
-        ${revLine("Bleeding (21d)", fmtYN(draft.q2_bleeding, draft.q2_bleeding_count))}
-        ${revLine("Travel (21d)", draft.q3_travel==="Yes"?("Yes — "+(draft.q3_travel_date||"date n/a")):(draft.q3_travel||"—"))}
-        ${revLine("Sudden death (4w)", fmtYN(draft.q4_sudden_death, draft.q4_death_count))}
-        ${revLine("Reactions", reactSummary())}
-        ${["q1","q2","q3","q4"].map(s=>draft["unease_note_"+s]?revLine("Unease note ("+s.toUpperCase()+")", draft["unease_note_"+s]):"").join("")}
-      </div>
-      <div class="flag ${draft.triage_flag==='Needs follow-up'?'follow':'routine'}">
-        ${draft.triage_flag==='Needs follow-up' ? '⚠ Screening result: <b>Refer for follow-up</b>' : '✔ Screening result: <b>Routine</b>'}
-        <div style="font-weight:400;font-size:13px;margin-top:4px;opacity:.85">A screening aid only — not a diagnosis.</div>
-      </div>
-      <label class="field"><span>Notes (optional)</span><textarea id="f_notes" placeholder="Anything to add…">${esc(draft.notes)}</textarea></label>
-    </div>`;
-  }
-  $("#backBtn").textContent = stepIx===0 ? "Cancel" : "Back";
-  $("#nextBtn").textContent = key==="review" ? "✔ Save checkup" : "Next";
-  bindStep(key);
-}
-
-function bindStep(key){
-  // yes/no
-  $("#step").querySelectorAll("[data-set]").forEach(el=>el.onclick=()=>{
-    const name=el.dataset.set, val=el.dataset.val; draft[name]=val;
-    // toggle extra blocks live
-    captureStep(key, true); renderStep();
-  });
-  // reactions
-  $("#step").querySelectorAll("[data-react]").forEach(el=>el.onclick=()=>{
-    captureStep(key);                 // keep counts / notes already typed
-    const k=el.dataset.react;
-    draft[k] = (draft[k]===el.dataset.val) ? "" : el.dataset.val;
-    if(draft[k]!=="Uneasy") draft["unease_note_"+k.split("_").pop()]="";  // note only for Uneasy
-    renderStep();
-  });
-  // symptom chips
-  $("#step").querySelectorAll("[data-sym]").forEach(el=>el.onclick=()=>{
-    const s=el.dataset.sym; const i=draft.q1_symptoms.indexOf(s);
-    if(i>=0) draft.q1_symptoms.splice(i,1); else draft.q1_symptoms.push(s);
-    el.classList.toggle("sel");
-  });
-}
-
-function captureStep(key, silent){
-  const g=(id)=>{const e=$("#"+id);return e?e.value.trim():undefined;};
-  const note=(s)=>{ const v=g("f_note_"+s); if(v!==undefined) draft["unease_note_"+s]=v; };
-  if(key==="intro"){ draft.household_id=g("f_hh")??draft.household_id; draft.community=g("f_comm")??draft.community; }
-  if(key==="q1"){ const v=g("f_q1c"); if(v!==undefined) draft.q1_fever_count=v; note("q1"); }
-  if(key==="q2"){ const v=g("f_q2c"); if(v!==undefined) draft.q2_bleeding_count=v; note("q2"); }
-  if(key==="q3"){ const v=g("f_q3d"); if(v!==undefined) draft.q3_travel_date=v; note("q3"); }
-  if(key==="q4"){ const v=g("f_q4c"); if(v!==undefined) draft.q4_death_count=v; note("q4"); }
-  if(key==="review"){ const v=g("f_notes"); if(v!==undefined) draft.notes=v; }
-  return true;
-}
-function validateStep(key){
-  if(key==="q1" && !draft.q1_fever){ toast("Please choose No or Yes."); return false; }
-  if(key==="q2" && !draft.q2_bleeding){ toast("Please choose No or Yes."); return false; }
-  if(key==="q3" && !draft.q3_travel){ toast("Please choose No or Yes."); return false; }
-  if(key==="q4" && !draft.q4_sudden_death){ toast("Please choose No or Yes."); return false; }
-  return true;
-}
-
-$("#nextBtn").onclick = ()=>{
-  const key=STEPS[stepIx]; captureStep(key);
-  if(!validateStep(key)) return;
-  if(key==="review"){ submitDraft(); return; }
-  stepIx++; renderStep();
-};
-$("#backBtn").onclick = ()=>{
-  const key=STEPS[stepIx]; captureStep(key);
-  if(stepIx===0){ if(confirm("Cancel this checkup? Answers will be lost.")){ show("home"); } return; }
-  stepIx--; renderStep();
-};
-
-/* ---------- Triage flag (transparent, non-diagnostic) ---------- */
-function computeFlag(d){
-  const feverWithSymptom = d.q1_fever==="Yes" && d.q1_symptoms.length>0;
-  if(d.q2_bleeding==="Yes" || d.q4_sudden_death==="Yes" || d.q3_travel==="Yes" || feverWithSymptom)
-    return "Needs follow-up";
-  return "Routine";
-}
-
-/* ---------- Submit ---------- */
-function submitDraft(){
-  const finish = ()=>{
-    draft.submitted_at = new Date().toISOString();
-    draft.triage_flag = computeFlag(draft);
-    const recs=getRecords(); recs.push(draft); setRecords(recs);
-    $("#doneId").textContent = "ID: "+draft.record_id;
-    $("#doneFlag").innerHTML = `<div class="flag ${draft.triage_flag==='Needs follow-up'?'follow':'routine'}">
-      ${draft.triage_flag==='Needs follow-up'?'⚠ Refer this household for follow-up':'✔ Routine — no red flags'}</div>`;
-    show("done"); renderHome();
-    autoSync(true);
-  };
-  const s=getSettings();
-  if(s.gps && navigator.geolocation){
-    toast("Getting location…");
-    navigator.geolocation.getCurrentPosition(
-      p=>{ draft.gps_lat=p.coords.latitude.toFixed(5); draft.gps_lng=p.coords.longitude.toFixed(5); finish(); },
-      ()=>{ finish(); }, {timeout:6000, maximumAge:60000});
-  } else finish();
-}
-
-/* ---------- Sync (offline-safe, idempotent via record_id) ---------- */
-function jsonp(url, params){
+/* ---------- API (JSONP read, no-cors write) ---------- */
+function jsonp(params){
   return new Promise((resolve,reject)=>{
-    const cb="__heal_cb_"+Math.random().toString(36).slice(2);
+    const ep=endpoint(); if(!ep) return reject(new Error("no_endpoint"));
+    const cb="__heal_"+Math.random().toString(36).slice(2);
     const s=document.createElement("script");
     const to=setTimeout(()=>{cleanup();reject(new Error("timeout"));},15000);
-    function cleanup(){ delete window[cb]; if(s.parentNode) s.remove(); clearTimeout(to); }
-    window[cb]=(data)=>{cleanup();resolve(data);};
+    function cleanup(){delete window[cb];if(s.parentNode)s.remove();clearTimeout(to);}
+    window[cb]=(d)=>{cleanup();resolve(d);};
     const q=new URLSearchParams(Object.assign({},params,{callback:cb})).toString();
-    s.src=url+(url.indexOf("?")>=0?"&":"?")+q;
+    s.src=ep+(ep.indexOf("?")>=0?"&":"?")+q;
     s.onerror=()=>{cleanup();reject(new Error("network"));};
     document.body.appendChild(s);
   });
 }
-async function pushRecords(url, records){
-  // no-cors write; response is opaque, verified separately via JSONP
-  await fetch(url,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({records})});
+async function api(action,params){
+  const s=session();
+  const p=Object.assign({action},params||{});
+  if(s&&s.token) p.token=s.token;
+  const data=await jsonp(p);
+  if(data&&(data.error==="session_expired"||data.error==="unauthorized")){ logout(true); throw new Error(data.error); }
+  return data;
 }
-function chunk(a,n){ const o=[]; for(let i=0;i<a.length;i+=n) o.push(a.slice(i,i+n)); return o; }
+async function apiPost(action,body){
+  const ep=endpoint(); const s=session();
+  await fetch(ep,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify(Object.assign({action,token:s&&s.token},body))});
+}
 
+/* ---------- views / router ---------- */
+function show(v){
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+  const el=$("#v-"+v); if(el)el.classList.add("active"); window.scrollTo(0,0);
+  $("#hdr").classList.toggle("hide", ["setup","login","locked"].indexOf(v)>=0);
+  if(v==="home")renderHome();
+  if(v==="records")renderRecords();
+  if(v==="progress")loadProgress();
+  if(v==="analysis")loadAnalysis();
+  if(v==="users")loadUsers();
+  if(v==="controls")loadControls();
+  if(v==="share")renderShare();
+}
+function roleHome(){const s=session();return s&&s.role==="supervisor"?"progress":"home";}
+
+/* ---------- auth ---------- */
+function sessionValid(){const s=session();return s&&s.token&&s.day_key===localDay();}
+async function doLogin(){
+  const u=$("#lgUser").value.trim().toLowerCase(), pin=$("#lgPin").value.trim();
+  if(!u||!pin){$("#lgErr").textContent="Enter username and PIN.";return;}
+  if(!navigator.onLine){$("#lgErr").textContent="You need internet to log in. Try near a signal at the start of the day.";return;}
+  $("#lgErr").textContent="Logging in…";
+  try{
+    const r=await jsonp({action:"login",username:u,pin});
+    if(!r||!r.ok){$("#lgErr").textContent="Wrong username or PIN.";return;}
+    save(K.session,{token:r.token,role:r.role,username:r.username,display_name:r.display_name,day_key:r.day_key});
+    setEpoch(r.data_epoch||0);
+    $("#lgPin").value="";$("#lgErr").textContent="";
+    enterApp(r.locked,r.lock_message);
+  }catch(e){$("#lgErr").textContent="Could not reach the server. Check the data link / internet.";}
+}
+function logout(silent){del(K.session);if(!silent)toast("Logged out.");buildMenu();show("login");}
+function enterApp(locked,msg){
+  buildMenu();
+  if(locked && session().role!=="admin"){showLock(msg);return;}
+  show(roleHome());
+  checkIn();
+}
+function showLock(msg){$("#lockMsg").textContent=msg||"Data collection is paused by your administrator.";show("locked");}
+
+/* ---------- check-in: enforce lock + clean-on-epoch ---------- */
+async function checkIn(){
+  if(!session()||!navigator.onLine)return;
+  try{
+    const st=await api("status",{});
+    if(!st||!st.ok)return;
+    if((st.data_epoch||0)>getEpoch()){
+      await syncNow(true);            // push my pending first (best effort)
+      const kept=getRecords().filter(r=>r._status!=="synced");
+      setRecords(kept);               // erase only synced records — never lose unsynced
+      setEpoch(st.data_epoch);
+      toast("Device cleaned by admin.");
+      if($("#v-home").classList.contains("active"))renderHome();
+    }
+    if(st.locked && session().role!=="admin"){showLock(st.lock_message);}
+  }catch(e){/* offline or expired (handled in api) */}
+}
+
+/* ===========================================================
+   FIELD-WORKER: capture wizard
+   =========================================================== */
+const SYMPTOMS=["Bad headache","Body pain (muscles/joints)","Very tired or weak (cannot get out of bed)",
+  "Difficulty swallowing","Difficulty breathing","Vomiting","Diarrhoea","Stomach pain",
+  "Hiccups that will not stop","Miscarriage or stillbirth","Refused all food for >24h"];
+const REACTIONS=[{v:"At ease",e:"🙂"},{v:"Neutral",e:"😐"},{v:"Uneasy",e:"😟"}];
+let draft=null,stepIx=0;
+const STEPS=["intro","q1","q2","q3","q4","review"];
+
+function newDraft(){
+  const s=session();
+  return {record_id:uid(),submitted_at:null,app_version:APP_VERSION,username:s.username,device_id:deviceId(),
+    community:localStorage.getItem(K.community)||"",household_id:"",
+    q1_fever:"",q1_fever_count:"",q1_symptoms:[],q2_bleeding:"",q2_bleeding_count:"",
+    q3_travel:"",q3_travel_country:"",q3_travel_date:"",q4_sudden_death:"",q4_death_count:"",
+    reaction_q1:"",reaction_q2:"",reaction_q3:"",reaction_q4:"",
+    unease_note_q1:"",unease_note_q2:"",unease_note_q3:"",unease_note_q4:"",
+    gps_lat:"",gps_lng:"",notes:"",triage_flag:"",_status:"pending"};
+}
+function startForm(){draft=newDraft();stepIx=0;show("form");renderStep();}
+function yesNo(name,val){return `<div class="opt ${val==='No'?'sel':''}" data-set="${name}" data-val="No"><input type="radio" ${val==='No'?'checked':''}><span class="lbl">No</span></div>
+  <div class="opt ${val==='Yes'?'sel':''}" data-set="${name}" data-val="Yes"><input type="radio" ${val==='Yes'?'checked':''}><span class="lbl">Yes</span></div>`;}
+function reactBlock(qkey){
+  const cur=draft[qkey],suf=qkey.split("_").pop(),noteKey="unease_note_"+suf;
+  const noteBox=cur==="Uneasy"?`<label class="field" style="margin-top:12px"><span>What made them uneasy? <em>(optional)</em></span>
+      <textarea id="f_note_${suf}" placeholder="Note the concern, in their words if possible…">${esc(draft[noteKey]||"")}</textarea></label>`:"";
+  return `<div class="react"><div class="rlab">Respondent's reaction to this question <em>(optional)</em></div>
+    <div class="faces">${REACTIONS.map(r=>`<div class="face ${cur===r.v?'sel':''}" data-react="${qkey}" data-val="${r.v}"><div class="e">${r.e}</div><div class="t">${r.v}</div></div>`).join("")}</div>${noteBox}</div>`;
+}
+function renderStep(){
+  const key=STEPS[stepIx];$("#progBar").style.width=(stepIx/(STEPS.length-1)*100)+"%";
+  const c=$("#step");
+  if(key==="intro"){c.innerHTML=`<div class="card"><div class="qnum">New checkup</div><div class="qtext">Household details</div>
+    <label class="field"><span>Household ID (optional)</span><input type="text" id="f_hh" value="${esc(draft.household_id)}" placeholder="e.g. HH-014"></label>
+    <label class="field"><span>Community / area</span><input type="text" id="f_comm" value="${esc(draft.community)}" placeholder="e.g. Waterloo"></label>
+    <p class="hint">All answers are about <b>anyone in this household</b> in the period stated.</p></div>`;}
+  else if(key==="q1"){const yes=draft.q1_fever==="Yes";c.innerHTML=`<div class="card"><div class="qnum">Question 1 of 4</div>
+    <div class="qtext">Has anyone in this household had a <b>sudden high fever</b> in the past 21 days (3 weeks)?</div>${yesNo("q1_fever",draft.q1_fever)}
+    <div id="q1extra" style="${yes?'':'display:none'}"><label class="field"><span>How many people?</span><input type="number" min="0" id="f_q1c" value="${esc(draft.q1_fever_count)}" inputmode="numeric"></label>
+    <div class="sub">Did they also have any of these at the same time? (tap all that apply)</div>
+    <div class="chips">${SYMPTOMS.map(s=>`<div class="chip ${draft.q1_symptoms.includes(s)?'sel':''}" data-sym="${esc(s)}">${s}</div>`).join("")}</div></div>${reactBlock("reaction_q1")}</div>`;}
+  else if(key==="q2"){const yes=draft.q2_bleeding==="Yes";c.innerHTML=`<div class="card"><div class="qnum">Question 2 of 4</div>
+    <div class="qtext">In the past 21 days, has anyone had <b>bleeding that would not stop</b> (gums, nose, eyes, vomit, stool, urine, skin, vagina, or injection sites)?</div>${yesNo("q2_bleeding",draft.q2_bleeding)}
+    <div id="q2extra" style="${yes?'':'display:none'}"><label class="field"><span>How many people?</span><input type="number" min="0" id="f_q2c" value="${esc(draft.q2_bleeding_count)}" inputmode="numeric"></label></div>${reactBlock("reaction_q2")}</div>`;}
+  else if(key==="q3"){const yes=draft.q3_travel==="Yes";c.innerHTML=`<div class="card"><div class="qnum">Question 3 of 4</div>
+    <div class="qtext">In the past 21 days, did anyone <b>travel to or return from another country</b>?</div>${yesNo("q3_travel",draft.q3_travel)}
+    <div id="q3extra" style="${yes?'':'display:none'}"><label class="field"><span>Which country?</span><input type="text" id="f_q3country" value="${esc(draft.q3_travel_country)}" placeholder="Country name"></label>
+    <label class="field"><span>Date travelled</span><input type="date" id="f_q3d" value="${esc(draft.q3_travel_date)}"></label></div>${reactBlock("reaction_q3")}</div>`;}
+  else if(key==="q4"){const yes=draft.q4_sudden_death==="Yes";c.innerHTML=`<div class="card"><div class="qnum">Question 4 of 4</div>
+    <div class="qtext">In the past 4 weeks, has anyone <b>died suddenly</b> after having some of these symptoms (fever, bleeding, vomiting)?</div>${yesNo("q4_sudden_death",draft.q4_sudden_death)}
+    <div id="q4extra" style="${yes?'':'display:none'}"><label class="field"><span>How many people?</span><input type="number" min="0" id="f_q4c" value="${esc(draft.q4_death_count)}" inputmode="numeric"></label></div>${reactBlock("reaction_q4")}</div>`;}
+  else if(key==="review"){draft.triage_flag=computeFlag(draft);
+    c.innerHTML=`<div class="card"><div class="qnum">Review &amp; submit</div><div class="qtext" style="font-size:18px">Check the answers</div><div class="rev">
+      ${revLine("Household",draft.household_id||"—")}
+      ${revLine("Fever (21d)",fmtYN(draft.q1_fever,draft.q1_fever_count))}
+      ${draft.q1_symptoms.length?revLine("Symptoms",draft.q1_symptoms.join(", ")):""}
+      ${revLine("Bleeding (21d)",fmtYN(draft.q2_bleeding,draft.q2_bleeding_count))}
+      ${revLine("Travel (21d)",draft.q3_travel==="Yes"?("Yes — "+([draft.q3_travel_country,draft.q3_travel_date].filter(Boolean).join(", ")||"details n/a")):(draft.q3_travel||"—"))}
+      ${revLine("Sudden death (4w)",fmtYN(draft.q4_sudden_death,draft.q4_death_count))}
+      ${revLine("Reactions",reactSummary())}
+      ${["q1","q2","q3","q4"].map(s=>draft["unease_note_"+s]?revLine("Unease ("+s.toUpperCase()+")",draft["unease_note_"+s]):"").join("")}
+    </div>
+    <div class="flag ${draft.triage_flag==='Needs follow-up'?'follow':'routine'}">${draft.triage_flag==='Needs follow-up'?'⚠ Screening result: <b>Refer for follow-up</b>':'✔ Screening result: <b>Routine</b>'}
+      <div style="font-weight:400;font-size:13px;margin-top:4px;opacity:.85">A screening aid only — not a diagnosis.</div></div>
+    <label class="field"><span>Notes (optional)</span><textarea id="f_notes" placeholder="Anything to add…">${esc(draft.notes)}</textarea></label></div>`;}
+  $("#backBtn").textContent=stepIx===0?"Cancel":"Back";
+  $("#nextBtn").textContent=key==="review"?"✔ Save checkup":"Next";
+  bindStep(key);
+}
+function bindStep(key){
+  $("#step").querySelectorAll("[data-set]").forEach(el=>el.onclick=()=>{draft[el.dataset.set]=el.dataset.val;captureStep(key);renderStep();});
+  $("#step").querySelectorAll("[data-react]").forEach(el=>el.onclick=()=>{captureStep(key);const k=el.dataset.react;draft[k]=(draft[k]===el.dataset.val)?"":el.dataset.val;if(draft[k]!=="Uneasy")draft["unease_note_"+k.split("_").pop()]="";renderStep();});
+  $("#step").querySelectorAll("[data-sym]").forEach(el=>el.onclick=()=>{const s=el.dataset.sym,i=draft.q1_symptoms.indexOf(s);if(i>=0)draft.q1_symptoms.splice(i,1);else draft.q1_symptoms.push(s);el.classList.toggle("sel");});
+}
+function captureStep(key){
+  const g=(id)=>{const e=$("#"+id);return e?e.value.trim():undefined;};
+  const note=(s)=>{const v=g("f_note_"+s);if(v!==undefined)draft["unease_note_"+s]=v;};
+  if(key==="intro"){draft.household_id=g("f_hh")??draft.household_id;draft.community=g("f_comm")??draft.community;}
+  if(key==="q1"){const v=g("f_q1c");if(v!==undefined)draft.q1_fever_count=v;note("q1");}
+  if(key==="q2"){const v=g("f_q2c");if(v!==undefined)draft.q2_bleeding_count=v;note("q2");}
+  if(key==="q3"){const cy=g("f_q3country");if(cy!==undefined)draft.q3_travel_country=cy;const v=g("f_q3d");if(v!==undefined)draft.q3_travel_date=v;note("q3");}
+  if(key==="q4"){const v=g("f_q4c");if(v!==undefined)draft.q4_death_count=v;note("q4");}
+  if(key==="review"){const v=g("f_notes");if(v!==undefined)draft.notes=v;}
+}
+function validateStep(key){
+  const map={q1:"q1_fever",q2:"q2_bleeding",q3:"q3_travel",q4:"q4_sudden_death"};
+  if(map[key]&&!draft[map[key]]){toast("Please choose No or Yes.");return false;}return true;
+}
+function computeFlag(d){const fs=d.q1_fever==="Yes"&&d.q1_symptoms.length>0;
+  return (d.q2_bleeding==="Yes"||d.q4_sudden_death==="Yes"||d.q3_travel==="Yes"||fs)?"Needs follow-up":"Routine";}
+function submitDraft(){
+  const finish=()=>{draft.submitted_at=new Date().toISOString();draft.triage_flag=computeFlag(draft);
+    if(draft.community)localStorage.setItem(K.community,draft.community);
+    const recs=getRecords();recs.push(draft);setRecords(recs);
+    $("#doneId").textContent="ID: "+draft.record_id;
+    $("#doneFlag").innerHTML=`<div class="flag ${draft.triage_flag==='Needs follow-up'?'follow':'routine'}">${draft.triage_flag==='Needs follow-up'?'⚠ Refer this household for follow-up':'✔ Routine — no red flags'}</div>`;
+    show("done");autoSync();};
+  finish();
+}
+function fmtYN(v,c){return v==="Yes"?("Yes"+(c?` (${c})`:"")):(v||"—");}
+function revLine(k,v){return `<div class="line"><span>${k}</span><b>${esc(String(v))}</b></div>`;}
+function reactSummary(){const m={reaction_q1:"Q1",reaction_q2:"Q2",reaction_q3:"Q3",reaction_q4:"Q4"};
+  const p=Object.keys(m).filter(k=>draft[k]).map(k=>`${m[k]}:${draft[k]}`);return p.length?p.join("  "):"—";}
+
+/* ---------- sync (current user's pending; server append-only) ---------- */
 let syncing=false;
 async function syncNow(quiet){
-  const s=getSettings();
-  if(!s.api){ if(!quiet) toast("Add a Google Sheet link in Settings."); return; }
-  if(!navigator.onLine){ if(!quiet) toast("No internet — will sync when back online."); return; }
-  const recs=getRecords();
-  const pending=recs.filter(r=>r._status!=="synced");
-  if(!pending.length){ if(!quiet) toast("All data already synced."); return; }
-  if(syncing) return; syncing=true;
+  const s=session();if(!s)return;
+  if(!endpoint()){if(!quiet)toast("No data link set.");return;}
+  if(!navigator.onLine){if(!quiet)toast("No internet — will sync when back online.");return;}
+  const mine=getRecords().filter(r=>r.username===s.username&&r._status!=="synced");
+  if(!mine.length){if(!quiet)toast("All my data already synced.");return;}
+  if(syncing)return;syncing=true;
   try{
-    await pushRecords(s.api, pending);
-    await new Promise(r=>setTimeout(r,900)); // let the sheet write settle
+    await apiPost("submit",{records:mine});
+    await delay(900);
     const present=new Set();
-    for(const grp of chunk(pending.map(r=>r.record_id),40)){
-      try{ const res=await jsonp(s.api,{action:"check",ids:grp.join(",")});
-        (res&&res.present||[]).forEach(id=>present.add(id)); }catch(e){}
+    for(const grp of chunk(mine.map(r=>r.record_id),40)){
+      try{const res=await api("check",{ids:grp.join(",")});(res&&res.present||[]).forEach(id=>present.add(id));}catch(e){}
     }
-    let n=0; const all=getRecords();
-    all.forEach(r=>{ if(present.has(r.record_id) && r._status!=="synced"){ r._status="synced"; n++; }});
+    let n=0;const all=getRecords();all.forEach(r=>{if(present.has(r.record_id)&&r._status!=="synced"){r._status="synced";n++;}});
     setRecords(all);
-    if(!quiet || n) toast(n?`${n} record(s) synced ✓`:"Sync done.");
-  }catch(e){ if(!quiet) toast("Sync failed — saved locally, will retry."); }
-  finally{ syncing=false; renderHome(); if($("#v-records").classList.contains("active")) renderRecords(); }
+    if(!quiet||n)toast(n?`${n} record(s) synced ✓`:"Sync attempted.");
+  }catch(e){if(!quiet)toast("Sync failed — saved locally, will retry.");}
+  finally{syncing=false;renderHome();if($("#v-records").classList.contains("active"))renderRecords();}
 }
-function autoSync(quiet){ const s=getSettings(); if(s.api && navigator.onLine) syncNow(true); }
+function autoSync(){if(session()&&endpoint()&&navigator.onLine)syncNow(true);}
 
-/* ---------- Renderers ---------- */
+/* ---------- field-worker renderers ---------- */
+function myRecords(){const s=session();return s?getRecords().filter(r=>r.username===s.username):[];}
 function renderHome(){
-  const recs=getRecords();
-  $("#stToday").textContent = recs.filter(r=>r.submitted_at && isToday(r.submitted_at)).length;
-  $("#stTotal").textContent = recs.length;
-  const pend=recs.filter(r=>r._status!=="synced").length;
-  $("#stPending").textContent = pend;
-  const s=getSettings();
-  $("#syncHint").textContent = !s.api ? "Sync not set up — working offline. Open Settings to connect a Sheet."
-    : pend ? `${pend} checkup(s) waiting to sync.` : "Everything is synced.";
-}
-function fmtYN(v,c){ if(v==="Yes") return "Yes"+(c?` (${c})`:""); return v||"—"; }
-function revLine(k,v){ return `<div class="line"><span>${k}</span><b>${esc(String(v))}</b></div>`; }
-function reactSummary(){
-  const m={reaction_q1:"Q1",reaction_q2:"Q2",reaction_q3:"Q3",reaction_q4:"Q4"};
-  const parts=Object.keys(m).filter(k=>draft[k]).map(k=>`${m[k]}:${draft[k]}`);
-  return parts.length?parts.join("  "):"—";
+  const recs=myRecords();
+  $("#stToday").textContent=recs.filter(r=>r.submitted_at&&isToday(r.submitted_at)).length;
+  $("#stTotal").textContent=recs.length;
+  const pend=recs.filter(r=>r._status!=="synced").length;$("#stPending").textContent=pend;
+  $("#syncHint").textContent=!endpoint()?"No data link set.":pend?`${pend} checkup(s) waiting to sync.`:"Everything is synced.";
 }
 function renderRecords(){
-  const recs=getRecords().slice().reverse();
+  const recs=myRecords().slice().reverse();
   $("#rcTotal").textContent=recs.length;
   $("#rcPending").textContent=recs.filter(r=>r._status!=="synced").length;
   $("#rcFlag").textContent=recs.filter(r=>r.triage_flag==="Needs follow-up").length;
   const list=$("#recList");
-  if(!recs.length){ list.innerHTML=`<p class="hint" style="text-align:center;padding:20px">No checkups yet.</p>`; return; }
-  list.innerHTML=recs.map(r=>{
-    const t=new Date(r.submitted_at); const synced=r._status==="synced";
-    return `<div class="rec"><span class="dot ${synced?'s':'p'}"></span>
-      <div class="meta"><b>${esc(r.household_id||r.record_id)}</b>
-        <span>${t.toLocaleString()} · ${synced?'Synced':'To sync'}</span></div>
-      <span class="tag ${r.triage_flag==='Needs follow-up'?'f':'r'}">${r.triage_flag==='Needs follow-up'?'Follow-up':'Routine'}</span></div>`;
-  }).join("");
+  if(!recs.length){list.innerHTML=`<p class="hint" style="text-align:center;padding:20px">No checkups yet.</p>`;return;}
+  list.innerHTML=recs.map(r=>{const t=new Date(r.submitted_at),sy=r._status==="synced";
+    return `<div class="rec"><span class="dot ${sy?'s':'p'}"></span><div class="meta"><b>${esc(r.household_id||r.record_id)}</b><span>${t.toLocaleString()} · ${sy?'Synced':'To sync'}</span></div><span class="tag ${r.triage_flag==='Needs follow-up'?'f':'r'}">${r.triage_flag==='Needs follow-up'?'Follow-up':'Routine'}</span></div>`;}).join("");
 }
 function toCSV(recs){
-  const cols=["submitted_at","record_id","app_version","device_label","screener_name","community","household_id",
-    "q1_fever","q1_fever_count","q1_symptoms","q2_bleeding","q2_bleeding_count","q3_travel","q3_travel_date",
-    "q4_sudden_death","q4_death_count","triage_flag",
-    "reaction_q1","unease_note_q1","reaction_q2","unease_note_q2","reaction_q3","unease_note_q3","reaction_q4","unease_note_q4",
-    "gps_lat","gps_lng","notes","_status"];
-  const q=(x)=>{ let v=Array.isArray(x)?x.join("; "):(x==null?"":String(x)); return '"'+v.replace(/"/g,'""')+'"'; };
+  const cols=["synced_at","submitted_at","record_id","username","device_id","app_version","community","household_id",
+    "q1_fever","q1_fever_count","q1_symptoms","q2_bleeding","q2_bleeding_count","q3_travel","q3_travel_country","q3_travel_date",
+    "q4_sudden_death","q4_death_count","triage_flag","reaction_q1","unease_note_q1","reaction_q2","unease_note_q2",
+    "reaction_q3","unease_note_q3","reaction_q4","unease_note_q4","gps_lat","gps_lng","notes","_status"];
+  const q=(x)=>{let v=Array.isArray(x)?x.join("; "):(x==null?"":String(x));return '"'+v.replace(/"/g,'""')+'"';};
   return cols.join(",")+"\n"+recs.map(r=>cols.map(c=>q(r[c])).join(",")).join("\n");
 }
-function exportCSV(){
-  const recs=getRecords(); if(!recs.length){ toast("No records to export."); return; }
-  const blob=new Blob([toCSV(recs)],{type:"text/csv"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="heal-sl-checkups-"+new Date().toISOString().slice(0,10)+".csv";
-  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  toast("CSV exported.");
+function exportCSV(){const recs=myRecords();if(!recs.length){toast("No records to export.");return;}
+  const b=new Blob([toCSV(recs)],{type:"text/csv"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(b);a.download="heal-sl-"+(session().username)+"-"+localDay()+".csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("CSV exported.");}
+
+/* ---------- supervisor / admin: progress ---------- */
+async function loadProgress(){
+  $("#progHint").textContent="Loading…";
+  try{const r=await api("progress",{});if(!r||!r.ok)throw r;
+    $("#progDay").textContent=r.day_key;$("#pgTotal").textContent=r.total;$("#pgWorkers").textContent=r.workers.length;
+    $("#progTable").innerHTML=`<table class="tbl"><tr><th>Worker</th><th class="n">Today</th><th class="n">Total</th><th class="n">Follow-up</th></tr>`+
+      r.workers.map(w=>`<tr><td>${esc(w.display_name||w.username)}</td><td class="n">${w.today}</td><td class="n">${w.total}</td><td class="n">${w.followups}</td></tr>`).join("")+`</table>`;
+    $("#progHint").textContent="Updated "+new Date().toLocaleTimeString();
+  }catch(e){$("#progHint").textContent=navigator.onLine?"Could not load progress.":"Offline — connect to see progress.";}
 }
 
-/* ---------- Settings ---------- */
-function fillSettings(){
-  const s=getSettings();
-  $("#setApi").value=s.api||""; $("#setScreener").value=s.screener||"";
-  $("#setCommunity").value=s.community||""; $("#setDevice").value=s.device||"";
-  $("#setGps").checked=!!s.gps;
+/* ---------- admin: analysis ---------- */
+function bar(label,val,max,cls){const pct=max>0?Math.round(val/max*100):0;
+  return `<div class="bar ${cls||''}"><div class="bl"><span>${esc(label)}</span><b>${val}</b></div><div class="bt"><div class="bf" style="width:${pct}%"></div></div></div>`;}
+async function loadAnalysis(){
+  const body=$("#analysisBody");body.innerHTML=`<p class="hint">Loading…</p>`;
+  try{const a=await api("analytics",{});if(!a||!a.ok)throw a;
+    const tot=a.total||0;
+    let h=`<div class="stat"><div class="box"><b>${tot}</b><span>Checkups</span></div><div class="box red"><b>${a.followups}</b><span>Follow-up</span></div><div class="box"><b>${a.routine}</b><span>Routine</span></div></div>`;
+    h+=`<div class="card"><b>“Yes” by question</b>`+
+      bar("Sudden high fever",a.questions.fever.yes,tot,"")+
+      bar("Unstoppable bleeding",a.questions.bleeding.yes,tot,"red")+
+      bar("Recent travel",a.questions.travel.yes,tot,"blue")+
+      bar("Sudden death",a.questions.sudden_death.yes,tot,"red")+`</div>`;
+    const syms=Object.keys(a.symptoms).sort((x,y)=>a.symptoms[y]-a.symptoms[x]);
+    const smax=syms.length?a.symptoms[syms[0]]:0;
+    h+=`<div class="card"><b>Symptoms reported</b>${syms.length?syms.map(s=>bar(s,a.symptoms[s],smax,"amber")).join(""):'<p class="hint">None yet.</p>'}</div>`;
+    const order=["At ease","Neutral","Uneasy"];const qn={reaction_q1:"Q1 fever",reaction_q2:"Q2 bleeding",reaction_q3:"Q3 travel",reaction_q4:"Q4 death"};
+    h+=`<div class="card"><b>Reactions (how respondents felt)</b><p class="hint" style="margin-top:2px">Uneasy notes captured: ${a.unease_notes}</p>`;
+    Object.keys(qn).forEach(k=>{const d=a.reactions[k]||{};const sum=order.reduce((t,o)=>t+(d[o]||0),0);
+      h+=`<div style="margin:8px 0 2px;font-size:13px;color:var(--muted)">${qn[k]}</div>`+order.map(o=>bar(o,d[o]||0,sum,o==="Uneasy"?"red":"")).join("");});
+    h+=`</div>`;
+    body.innerHTML=h;
+  }catch(e){body.innerHTML=`<p class="hint">${navigator.onLine?"Could not load analysis.":"Offline — connect to see analysis."}</p>`;}
 }
-$("#saveSet").onclick=()=>{
-  const api=$("#setApi").value.trim();
-  if(api && !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(api)){
-    $("#setApiErr").textContent="That doesn't look like an Apps Script /exec link."; $("#setApiErr").classList.add("show"); return;
-  }
-  $("#setApiErr").classList.remove("show");
-  setSettings({api, screener:$("#setScreener").value.trim(), community:$("#setCommunity").value.trim(),
-    device:$("#setDevice").value.trim(), gps:$("#setGps").checked});
-  toast("Settings saved."); show("home");
-};
-$("#testBtn").onclick=async ()=>{
-  const api=$("#setApi").value.trim();
-  if(!api){ toast("Enter the link first."); return; }
-  toast("Testing…");
-  try{ const r=await jsonp(api,{action:"ping"}); toast(r&&r.ok?`Connected ✓ (${r.count} rows)`:"Reached server."); }
-  catch(e){ toast("Could not reach the Sheet link."); }
-};
 
-/* ---------- Install & share ---------- */
-function appUrl(withApi){
-  const base=location.origin+location.pathname;
-  const s=getSettings();
-  return (withApi && s.api) ? base+"?api="+encodeURIComponent(s.api) : base;
+/* ---------- admin: users ---------- */
+async function loadUsers(){
+  const box=$("#userList");box.innerHTML=`<p class="hint" style="padding:8px">Loading…</p>`;
+  try{const r=await api("listUsers",{});if(!r||!r.ok)throw r;
+    box.innerHTML=`<table class="tbl"><tr><th>Name</th><th>Role</th><th>Status</th><th></th></tr>`+
+      r.users.map(u=>`<tr><td>${esc(u.display_name)}<div style="font-size:11px;color:var(--muted)">@${esc(u.username)}</div></td>
+        <td>${esc(u.role)}</td><td>${u.active?'<span class="pill">active</span>':'<span class="pill off">off</span>'}</td>
+        <td class="n"><button class="btn ${u.active?'gray':'soft'} sm" data-toggle="${esc(u.username)}" data-active="${u.active?'0':'1'}">${u.active?'Disable':'Enable'}</button></td></tr>`).join("")+`</table>`;
+    box.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=async()=>{
+      try{await api("setUserActive",{username:b.dataset.toggle,active:b.dataset.active==="1"});toast("Updated.");loadUsers();}catch(e){toast("Failed.");}});
+  }catch(e){box.innerHTML=`<p class="hint" style="padding:8px">${navigator.onLine?"Could not load users.":"Offline."}</p>`;}
 }
-function drawQR(elId, text){
-  const el=$("#"+elId); el.innerHTML="";
-  try{
-    const qr=qrcode(0,"M"); qr.addData(text); qr.make();
-    el.innerHTML=qr.createSvgTag({cellSize:6, margin:4, scalable:true});
-    const svg=el.querySelector("svg"); if(svg){ svg.removeAttribute("width"); svg.removeAttribute("height"); }
-  }catch(e){ el.textContent="QR error"; }
+async function saveUser(){
+  const name=$("#nuName").value.trim(),user=$("#nuUser").value.trim().toLowerCase(),role=$("#nuRole").value,pin=$("#nuPin").value.trim();
+  if(!/^[a-z0-9._-]{3,20}$/.test(user)){$("#nuErr").textContent="Username: 3–20 chars, lowercase letters/numbers/._-";return;}
+  if(!/^\d{4,8}$/.test(pin)){$("#nuErr").textContent="PIN must be 4–8 digits.";return;}
+  $("#nuErr").textContent="Saving…";
+  try{await apiPost("createUser",{username:user,display_name:name||user,role,pin});
+    await delay(900);$("#nuName").value="";$("#nuUser").value="";$("#nuPin").value="";$("#nuErr").textContent="";
+    toast("User saved.");loadUsers();
+  }catch(e){$("#nuErr").textContent="Could not save (need internet).";}
 }
-function renderShare(){
-  const url=appUrl(true);
-  drawQR("qrbox", url);
-  $("#shareUrl").textContent=url;
+
+/* ---------- admin: controls ---------- */
+async function loadControls(){
+  try{const st=await api("status",{});if(st&&st.ok){
+    $("#lockState").textContent=st.locked?"PAUSED":"Active";$("#lockState").className="pill"+(st.locked?" off":"");
+    $("#lockMessage").value=st.lock_message||"";
+  }}catch(e){$("#lockState").textContent="?";}
 }
-$("#copyUrl").onclick=()=>{ navigator.clipboard?.writeText(appUrl(true)).then(()=>toast("Link copied."),()=>toast(appUrl(true))); };
-$("#printBtn").onclick=()=>{ drawQR("posterQr", appUrl(true)); $("#posterUrl").textContent=appUrl(true); window.print(); };
+async function setLock(locked){
+  try{await api("setLock",{locked,message:$("#lockMessage").value.trim()});toast(locked?"Access paused.":"Access resumed.");loadControls();}
+  catch(e){toast("Failed (need internet).");}
+}
+async function clearDevices(){
+  if(!confirm("Tell ALL devices to upload pending data and then erase local copies? Unsynced data is preserved."))return;
+  try{const r=await api("clearDevices",{});toast("Devices will clean on next check-in.");setEpoch(r.data_epoch||getEpoch());
+    await syncNow(true);setRecords(getRecords().filter(x=>x._status!=="synced"));renderHome();}
+  catch(e){toast("Failed (need internet).");}
+}
 
-let deferredPrompt=null;
-window.addEventListener("beforeinstallprompt",(e)=>{ e.preventDefault(); deferredPrompt=e; const b=$("#installBtn"); if(b) b.style.display="flex"; });
-$("#installBtn").onclick=async ()=>{ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $("#installBtn").style.display="none"; } };
+/* ---------- install / share ---------- */
+function appUrl(){const base=location.origin+location.pathname,ep=endpoint();return ep?base+"?api="+encodeURIComponent(ep):base;}
+function drawQR(id,text){const el=$("#"+id);el.innerHTML="";try{const qr=qrcode(0,"M");qr.addData(text);qr.make();el.innerHTML=qr.createSvgTag({cellSize:6,margin:4,scalable:true});const svg=el.querySelector("svg");if(svg){svg.removeAttribute("width");svg.removeAttribute("height");}}catch(e){el.textContent="QR error";}}
+function renderShare(){drawQR("qrbox",appUrl());$("#shareUrl").textContent=appUrl();}
 
-/* ---------- Misc utils ---------- */
-function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+/* ---------- menu (role-based) ---------- */
+function buildMenu(){
+  const s=session();if(!s){$("#menuSheet").innerHTML="";return;}
+  const who=`${esc(s.display_name||s.username)} · ${esc(s.role)}`;$("#who").textContent=s.display_name||s.username;
+  let items=[];
+  if(s.role==="field-worker"||s.role==="admin"){items.push(["home","🏠","Home / Capture"],["records","🗂️","My records & export"]);}
+  if(s.role==="supervisor"||s.role==="admin"){items.push(["progress","📊","Team progress"]);}
+  if(s.role==="admin"){items.push(["analysis","📈","Analysis"],["users","👥","Users"],["controls","🛡️","Day controls"]);}
+  items.push(["share","📲","Install & share"]);
+  $("#menuSheet").innerHTML=`<h3>${who}</h3>`+items.map(i=>`<div class="mitem" data-go="${i[0]}"><span class="em">${i[1]}</span> ${i[2]}</div>`).join("")+
+    `<div class="mitem" data-act="logout" style="margin-top:8px;color:var(--red)"><span class="em">⏏</span> Log out</div>`;
+  $("#menuSheet").querySelectorAll("[data-go]").forEach(m=>m.onclick=()=>{$("#menu").classList.remove("open");show(m.dataset.go);});
+  $("#menuSheet").querySelector("[data-act=logout]").onclick=()=>{$("#menu").classList.remove("open");logout();};
+}
 
-/* ---------- Menu ---------- */
+/* ---------- static bindings ---------- */
 $("#menuBtn").onclick=()=>$("#menu").classList.add("open");
-$("#menu").onclick=(e)=>{ if(e.target.id==="menu") $("#menu").classList.remove("open"); };
-document.querySelectorAll(".mitem").forEach(m=>m.onclick=()=>{ $("#menu").classList.remove("open"); show(m.dataset.go); });
-
-/* ---------- Buttons ---------- */
-$("#startBtn").onclick=startForm;
-$("#syncBtn").onclick=()=>syncNow(false);
-$("#againBtn").onclick=startForm;
+$("#menu").onclick=(e)=>{if(e.target.id==="menu")$("#menu").classList.remove("open");};
+$("#setupSave").onclick=()=>{const v=$("#setupApi").value.trim();
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(v)){$("#setupErr").textContent="That doesn't look like an Apps Script /exec link.";return;}
+  localStorage.setItem(K.endpoint,v);$("#setupErr").textContent="";boot();};
+$("#lgReconnect").onclick=()=>{show("setup");$("#setupApi").value=endpoint();};
+$("#lgBtn").onclick=doLogin;
+$("#lgPin").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
+$("#lockRecheck").onclick=async()=>{await checkIn();const st=await api("status",{}).catch(()=>null);if(st&&st.ok&&(!st.locked||session().role==="admin")){enterApp(false);}};
+$("#lockLogout").onclick=()=>logout();
+$("#startBtn").onclick=startForm;$("#againBtn").onclick=startForm;
+$("#syncBtn").onclick=()=>syncNow(false);$("#doneSyncBtn").onclick=()=>syncNow(false);
 $("#doneHomeBtn").onclick=()=>show("home");
-$("#doneSyncBtn").onclick=()=>syncNow(false);
-$("#rcSync").onclick=()=>syncNow(false);
-$("#rcExport").onclick=exportCSV;
-$("#rcClear").onclick=()=>{ if(confirm("Remove records already synced from this device?")){ setRecords(getRecords().filter(r=>r._status!=="synced")); renderRecords(); renderHome(); toast("Cleared synced records."); } };
-$("#setHome").onclick=()=>show("home");
-$("#shareHome").onclick=()=>show("home");
+$("#nextBtn").onclick=()=>{const key=STEPS[stepIx];captureStep(key);if(!validateStep(key))return;if(key==="review"){submitDraft();return;}stepIx++;renderStep();};
+$("#backBtn").onclick=()=>{const key=STEPS[stepIx];captureStep(key);if(stepIx===0){if(confirm("Cancel this checkup? Answers will be lost."))show(roleHome());return;}stepIx--;renderStep();};
+$("#rcSync").onclick=()=>syncNow(false);$("#rcExport").onclick=exportCSV;
+$("#progRefresh").onclick=loadProgress;
+$("#anRefresh").onclick=loadAnalysis;
+$("#anDash").onclick=async()=>{toast("Building Sheet tab…");try{const r=await api("buildDashboard",{});toast(r&&r.ok?"Dashboard tab updated in your Sheet.":"Failed.");}catch(e){toast("Failed (need internet).");}};
+$("#nuSave").onclick=saveUser;
+$("#btnLock").onclick=()=>setLock(true);$("#btnUnlock").onclick=()=>setLock(false);$("#btnClear").onclick=clearDevices;
+$("#shareHome").onclick=()=>show(roleHome());
+$("#copyUrl").onclick=()=>{navigator.clipboard?.writeText(appUrl()).then(()=>toast("Link copied."),()=>toast(appUrl()));};
+$("#printBtn").onclick=()=>{drawQR("posterQr",appUrl());$("#posterUrl").textContent=appUrl();window.print();};
+window.addEventListener("online",()=>{if(session())checkIn();autoSync();});
 
-/* ---------- Boot ---------- */
-(function init(){
-  // capture api from QR/install link, persist once
+/* ---------- boot ---------- */
+function boot(){
   const p=new URLSearchParams(location.search).get("api");
-  if(p){ const s=getSettings(); s.api=p; setSettings(s);
-    history.replaceState(null,"",location.origin+location.pathname); }
-  netUI(); renderHome();
-  if("serviceWorker" in navigator){ navigator.serviceWorker.register("service-worker.js").catch(()=>{}); }
-  autoSync(true);
-})();
+  if(p){localStorage.setItem(K.endpoint,p);history.replaceState(null,"",location.origin+location.pathname);}
+  if(!endpoint()){show("setup");return;}
+  buildMenu();
+  if(sessionValid()){enterApp(false);}else{del(K.session);show("login");}
+}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("service-worker.js").catch(()=>{});}
+boot();
 </script>
 </body>
 </html>

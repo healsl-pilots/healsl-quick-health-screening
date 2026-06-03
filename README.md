@@ -1,130 +1,112 @@
 # HEAL-SL Health Quick Checkup
 
-A tiny, offline-first web app for household health screening. Health workers fill it
-in on a shared phone, it **stores every checkup on the device**, and **syncs to a
-Google Sheet** whenever there's internet. Installs from a QR code — no app store.
+A tiny, offline-first web app for household health screening with **three roles**
+(field-worker, supervisor, admin). It installs from a QR, works on low-spec phones in
+low/no connectivity, and **syncs to a Google Sheet** — no backend server to run.
 
-- Works on low-spec Android phones and in low/no connectivity.
-- No backend server to run or pay for — just a Google Sheet.
-- One file you host (free), one Apps Script you paste in. ~10 minutes.
+Live (pilot): `https://healsl-pilots.github.io/healsl-quick-health-screening/`
 
 ---
 
-## Files
+## Roles
 
-| File | What it is |
-|------|------------|
-| `index.html` | The whole app (UI + offline storage + sync). |
-| `service-worker.js` | Makes it load fully offline after first open. |
-| `manifest.webmanifest` | Lets it install to the home screen. |
-| `qrcode.min.js` | Offline QR generator for the in-app install/share screen. |
-| `icon-192.png`, `icon-512.png` | App icons. |
-| `Code.gs` | Google Apps Script that writes synced data into your Sheet. |
+| Role | Can do |
+|------|--------|
+| **Field-worker** | Log in, capture checkups, sync their own data. Sees only their own records. |
+| **Supervisor** | Read-only team progress: who captured how many, today/total, follow-up counts. No PII. |
+| **Admin** | Everything: create/disable users, link the Sheet, per-question analysis, pause access, clean devices at end of day. Can also capture. |
 
-Keep all files together in one folder.
+## How data is protected from overwrites
 
----
+The `Responses` sheet is an **append-only, immutable log**. Every checkup is one row with
+a globally-unique `record_id`, and the server **only ever appends new IDs — it never edits
+or deletes a row**. Ownership (`username`) is stamped from the login token, not the device,
+so it can't be spoofed. Result: two workers (or repeat syncs) can **never overwrite each
+other** — conflicts are impossible by design, not patched up afterwards.
 
-## Setup
+## Security model (honest version)
 
-### Part A — Create the Google Sheet backend (5 min)
-
-1. Create a new Google Sheet (this is where data lands).
-2. **Extensions → Apps Script**.
-3. Delete the sample code, paste the contents of **`Code.gs`**, and **Save**.
-4. **Deploy → New deployment**. Click the gear → **Web app**.
-   - **Execute as:** Me
-   - **Who has access:** **Anyone**
-5. **Deploy**, authorise when asked, and **copy the Web app URL** — it ends in `/exec`.
-
-That `/exec` link is your sync link.
-
-### Part B — Publish the app on GitHub Pages (5 min)
-
-1. Create a free GitHub account and a new **public** repository, e.g. `heal-sl`.
-2. Upload all the files in this folder (drag-and-drop into the repo works).
-3. **Settings → Pages →** Source: `Deploy from a branch`, Branch: `main`, Folder: `/ (root)`. Save.
-4. After a minute your app is live at:
-   `https://YOUR-USERNAME.github.io/heal-sl/`
-
-### Part C — Make the install QR (1 min)
-
-You have two easy options:
-
-- **Zero-config link (recommended).** Build this URL and turn it into a QR with any
-  free QR site (or the in-app **Install & share** screen):
-  ```
-  https://YOUR-USERNAME.github.io/heal-sl/?api=PASTE_YOUR_/exec_LINK_HERE
-  ```
-  Anyone who scans it opens the app **already connected to your Sheet** — no setup.
-
-- **In-app QR.** Open the app once, go to **☰ → Install & share**, set the sync link in
-  **Settings** first, then tap **Print poster**. The QR already includes the sync link,
-  so one configured phone can seed every other phone — even offline on the same spot.
+Login is **username + 4-digit PIN**. PINs are stored only as salted SHA-256 hashes. A login
+returns a **day-keyed HMAC token that expires at the end of the day**, so access auto-ends
+each day — even on phones that are offline. This is solid *operational* security for field
+health data on shared devices; it is not bank-grade cryptography. Treat PINs as daily access
+codes, sent over HTTPS.
 
 ---
 
-## How a health worker uses it
+## Setup (≈10 min, once)
 
-1. Scan the QR → the app opens → browser offers **"Add to Home screen" / "Install"**.
-2. Tap **Start new checkup**, answer the 4 questions, add the respondent's reaction to
-   each, review, **Save**.
-3. Data is saved on the phone instantly. When there's internet it syncs automatically;
-   the home screen shows how many are still **"To sync"**. They can also tap **Sync** or
-   **Export CSV** for a manual backup.
+### A. Backend (Google Sheet + Apps Script)
 
-Re-syncing is always safe — each checkup has a unique ID and is never written twice.
+1. Create a Google Sheet. **File → Settings →** set the time zone to your country
+   (e.g. *Africa/Freetown*) so "end of day" matches local midnight.
+2. **Extensions → Apps Script**, delete the sample, paste **`Code.gs`**, **Save**.
+3. At the top of `Code.gs`, edit `BOOTSTRAP_ADMIN` (admin username + a PIN you choose).
+4. Run the **`setup`** function once (**Run ▸ setup**) and authorise. This creates the
+   `Responses`, `Users`, `Control`, `Audit` tabs and your first admin account.
+5. **Deploy → New deployment → Web app**: *Execute as* = **Me**, *Who has access* = **Anyone**.
+   Copy the **/exec URL** — that's the app's data link.
+
+### B. App (GitHub Pages)
+
+Already published for the pilot at the URL above (org `healsl-pilots`). To host your own:
+put the files in a public repo, then **Settings → Pages →** deploy from `main` / root.
+`*.github.io` gives HTTPS automatically — required for offline/install to work.
+
+### C. Connect + first login
+
+- Open the app; paste the **/exec link** on the connect screen (or bake it into the install
+  QR as `…/?api=PASTE_/exec_LINK`). Field phones that scan the QR are connected automatically.
+- Log in as the admin you created, then **Users** → add your supervisors and field workers
+  (each gets a username + PIN). That's the only thing field workers need.
+
+---
+
+## Daily use
+
+- **Morning (needs a moment of signal):** each worker logs in once. The app then works
+  **offline all day** and syncs whenever signal returns.
+- **Field-worker:** *Start new checkup* → 4 questions, tap each respondent's reaction,
+  review, **Save**. Data is stored on the phone instantly; *Sync* pushes it up. Re-syncing
+  never duplicates a row.
+- **Supervisor:** opens straight to **Team progress**.
+- **Admin → Analysis:** per-question Yes-rates, symptom frequency, reaction/unease
+  distribution, follow-up rate. *Build Sheet tab* also writes a **Dashboard** tab with a chart.
+- **Admin → Day controls (end of day):** *Pause access* (blocks new capture) and *Clean all
+  devices* (each phone uploads anything pending, then erases its local copy — **unsynced data
+  is never deleted**).
 
 ---
 
 ## Gauging reaction to each question
 
-Some screening questions can make people uneasy. After each question the worker taps a
-**3-point comfort scale** — 🙂 *At ease* / 😐 *Neutral* / 😟 *Uneasy* — recording how the
-respondent reacted. It's one tap, optional, and language-light, so it never slows the visit.
-
-This is a pragmatic, field-proven format (a single-item facial affect rating). Each tap is
-saved per question (`reaction_q1…q4`) so you can later see **which questions cause the most
-discomfort** and reword or re-sequence them. When the worker marks a question **😟 Uneasy**, an
-optional text box appears to capture *why* — the concern in the respondent's own words, saved
-to `unease_note_q1…q4`. It only shows for Uneasy, so it never adds friction otherwise.
-
-**Want research-grade rigor?** Swap in the **Self-Assessment Manikin (SAM)** — a validated,
-language-free pictorial scale measuring *valence* (pleasant↔unpleasant) and *arousal*
-(calm↔excited). It's the gold standard for quick emotional-response measurement and works
-well with low literacy; the trade-off is two taps per question instead of one. The app is
-structured so this is a small change if you decide to upgrade.
+After each question the worker taps a **3-point comfort scale** — 🙂 *At ease* / 😐 *Neutral*
+/ 😟 *Uneasy* — saved per question (`reaction_q1…q4`). When **Uneasy** is chosen, an optional
+box captures *why*, in the respondent's words (`unease_note_q1…q4`). It only shows for Uneasy,
+so it never adds friction. The Analysis view shows which questions unsettle people most.
+(Research-grade upgrade if ever needed: the Self-Assessment Manikin, valence + arousal.)
 
 ---
 
-## What lands in the Google Sheet
+## What lands in the `Responses` sheet (one row per checkup)
 
-One row per checkup, columns in this order:
-
-`submitted_at, record_id, app_version, device_label, screener_name, community,
+`synced_at, submitted_at, record_id, username, device_id, app_version, community,
 household_id, q1_fever, q1_fever_count, q1_symptoms, q2_bleeding, q2_bleeding_count,
-q3_travel, q3_travel_date, q4_sudden_death, q4_death_count, triage_flag,
+q3_travel, q3_travel_country, q3_travel_date, q4_sudden_death, q4_death_count, triage_flag,
 reaction_q1, unease_note_q1, reaction_q2, unease_note_q2, reaction_q3, unease_note_q3,
 reaction_q4, unease_note_q4, gps_lat, gps_lng, notes`
 
-`triage_flag` is a transparent screening aid (**"Needs follow-up"** if there is unstoppable
-bleeding, a sudden death, recent travel, or fever with at least one listed symptom — otherwise
-**"Routine"**). It is **not a diagnosis**.
+`triage_flag` = **"Needs follow-up"** if there's unstoppable bleeding, a sudden death, recent
+travel, or fever with ≥1 listed symptom — otherwise **"Routine"**. A screening aid, **not a
+diagnosis**.
 
 ---
 
-## Data safety & offline behaviour
+## Files
 
-- Every checkup is stored on the device the moment it's saved, before any sync.
-- No internet? It queues and syncs later automatically — nothing is lost.
-- **Export CSV** gives a full backup with zero connectivity.
-- **Clear synced records** removes only data already confirmed in the Sheet.
+`index.html` (app) · `service-worker.js` (offline) · `manifest.webmanifest` (install) ·
+`qrcode.min.js` (offline QR) · `icon-192.png` / `icon-512.png` · `Code.gs` (backend).
 
----
-
-## Customising the questions
-
-Open `index.html`: the symptom list is the `SYMPTOMS` array and the questions are in
-`renderStep()`. If you add or rename a field, add the matching column name to `HEADERS`
-in `Code.gs` so it syncs. (No Ebola wording appears anywhere in the app — it reads as a
-generic household health checkup.)
+**After any change, bump the cache version** in `service-worker.js` (`heal-sl-v3` → `v4`) so
+installed phones pick up the update on next open. No Ebola wording appears anywhere in the
+app — it reads as a generic household health checkup.
