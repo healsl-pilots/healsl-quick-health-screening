@@ -462,22 +462,11 @@ async function loadAnalysis(){const body=$("#analysisBody");body.innerHTML=`<p c
       (tsy.length?`<div class="sub">Symptoms among travellers</div>`+tsy.map(s=>bar(s,tv.symptoms[s],tv.symptoms[tsy[0]],"amber")).join(""):``)+`</div>`;
     const ur=a.unease_reasons||[];
     h+=`<div class="card"><b>Uneasy reasons (${ur.length})</b>`+(ur.length?ur.map(u=>`<div style="border-top:1px solid var(--line);padding:8px 0"><div style="color:var(--muted);font-size:12px">${esc(u.q)}${u.area?" · "+esc(u.area):""}</div><div>${esc(u.note)}</div></div>`).join(""):`<p class="hint" style="margin-top:6px">None yet.</p>`)+`</div>`;
-    const fbN=(a.notes||[]).length;
-    h+=`<div class="card"><b>Final Feedback (${fbN})</b><p class="hint" style="margin-top:2px">Group the written feedback into clear categories.</p><button class="btn soft sm" id="fbAi" style="margin-top:6px">✨ Summarize feedback</button><div id="fbOut"></div></div>`;
+    const fbList=a.notes||[];
+    h+=`<div class="card"><b>Final Feedback (${fbList.length})</b>`+
+      (fbList.length?fbList.map(x=>`<div style="border-top:1px solid var(--line);padding:8px 0"><div style="color:var(--muted);font-size:12px">${esc(x.area||"")}</div><div>${esc(x.note)}</div></div>`).join(""):`<p class="hint" style="margin-top:6px">None yet.</p>`)+`</div>`;
     body.innerHTML=h;
-    if($("#fbAi"))$("#fbAi").onclick=summarizeFeedbackUI;
   }catch(e){body.innerHTML=`<p class="hint">${navigator.onLine?"Could not load.":"Offline."}</p>`;}}
-async function summarizeFeedbackUI(){
-  const out=$("#fbOut");if(!out)return;out.innerHTML=`<p class="hint" style="margin-top:8px">Summarizing…</p>`;
-  try{const r=await api("summarizeFeedback",{});
-    if(r&&r.ok){ if(!r.total){out.innerHTML=`<p class="hint" style="margin-top:8px">No feedback yet.</p>`;return;}
-      out.innerHTML=`<div class="rev" style="margin-top:8px">`+(r.categories||[]).map(c=>`<div class="line"><span>${esc(c.label)}</span><b>${c.count}</b></div>`).join("")+`</div>`;
-    }else if(r&&r.error==="no_api_key"){
-      out.innerHTML=`<p class="hint" style="margin-top:8px">AI summary not set up. Add a Gemini key in Apps Script (Script properties: GEMINI_API_KEY). Feedback so far:</p>`+(r.feedback||[]).map(t=>`<div style="border-top:1px solid var(--line);padding:8px 0">${esc(t)}</div>`).join("");
-    }else{
-      out.innerHTML=`<p class="hint" style="margin-top:8px">Could not summarize now. Feedback so far:</p>`+(((r&&r.feedback)||[]).map(t=>`<div style="border-top:1px solid var(--line);padding:8px 0">${esc(t)}</div>`).join("")||`<p class="hint">None.</p>`);
-    }
-  }catch(e){out.innerHTML=`<p class="hint" style="margin-top:8px">${navigator.onLine?"Could not summarize.":"Offline."}</p>`;}}
 
 async function loadUsers(){const box=$("#userList");box.innerHTML=`<p class="hint" style="padding:8px">Loading…</p>`;
   try{const r=await api("listUsers",{});if(!r||!r.ok)throw r;

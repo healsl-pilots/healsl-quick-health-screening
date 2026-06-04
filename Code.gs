@@ -68,7 +68,6 @@ function handle_(e, action) {
       case "setLock":       out = setLock_(tok_(p, body), body.locked, body.message); break;
       case "clearDevices":  out = clearDevices_(tok_(p, body)); break;
       case "buildDashboard":out = buildDashboard_(tok_(p, body)); break;
-      case "summarizeFeedback": out = summarizeFeedback_(tok_(p, body)); break;
       default:              out = { ok: false, error: "unknown_action" };
     }
   } catch (err) { out = { ok: false, error: String(err && err.message || err) }; }
@@ -168,43 +167,6 @@ function analytics_(token) {
     notes: notes };
 }
 
-/* ---- Final Feedback: AI summary (server-side Gemini proxy; key in Script Properties) ----
-   Set GEMINI_API_KEY (and optionally GEMINI_MODEL) under Project Settings > Script properties.
-   Without a key it returns no_api_key and the app falls back to listing the feedback. */
-function summarizeFeedback_(token) {
-  requireRole_(token, ["admin"]);
-  var rows = respRows_(), items = [];
-  rows.forEach(function (r) { if (r.notes && String(r.notes).trim()) items.push(String(r.notes).trim()); });
-  if (!items.length) return { ok: true, total: 0, categories: [] };
-  var g = geminiSummarize_(items);
-  if (g.error) return { ok: false, error: g.error, total: items.length, feedback: items.slice(0, 200) };
-  return { ok: true, total: items.length, categories: g.categories };
-}
-function geminiSummarize_(items) {
-  var props = PropertiesService.getScriptProperties();
-  var key = props.getProperty("GEMINI_API_KEY");
-  if (!key) return { error: "no_api_key" };
-  var model = props.getProperty("GEMINI_MODEL") || "gemini-2.0-flash";
-  var list = items.slice(0, 500).map(function (t, i) { return (i + 1) + ". " + String(t).replace(/\s+/g, " "); }).join("\n");
-  var prompt = "You are analysing short open ended final feedback from a household health survey. " +
-    "Group the responses into at most 8 clear categories by their meaning, not by exact words. " +
-    "Merge equivalents: for example No, none, nothing, nothing for now, no comment all become one category called No feedback. " +
-    "Give each category a short plain English label (2 to 4 words, no dashes or special punctuation) and the number of responses in it. " +
-    "Put every response in exactly one category and make the counts add up to the total. " +
-    "Return ONLY JSON: {\"categories\":[{\"label\":\"No feedback\",\"count\":12}]}.";
-  var payload = { contents: [{ parts: [{ text: prompt + "\n\nRESPONSES:\n" + list }] }], generationConfig: { temperature: 0.2, responseMimeType: "application/json" } };
-  var res;
-  try {
-    res = UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent",
-      { method: "post", contentType: "application/json", headers: { "x-goog-api-key": key }, payload: JSON.stringify(payload), muteHttpExceptions: true });
-  } catch (e) { return { error: "ai_failed" }; }
-  if (res.getResponseCode() !== 200) return { error: "ai_failed" };
-  try {
-    var d = JSON.parse(res.getContentText());
-    var txt = d.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
-    return { categories: (JSON.parse(txt).categories) || [] };
-  } catch (e) { return { error: "ai_failed" }; }
-}
 
 /* ============================== ADMIN: USERS ============================== */
 function listUsers_(token) {
@@ -312,18 +274,8 @@ function buildDashboard_(token) {
   else R.push(["(none)", ""]);
   R.push(["", ""]);
   head("Final Feedback (" + a.notes.length + " responses)");
-  var fb = a.notes.map(function (x) { return x.note; });
-  var g = fb.length ? geminiSummarize_(fb) : { categories: [] };
-  if (g.categories) {
-    if (g.categories.length) g.categories.forEach(function (c) { R.push([c.label, c.count]); });
-    else R.push(["(no feedback yet)", ""]);
-  } else {
-    R.push([g.error === "no_api_key" ? "AI summary off (set GEMINI_API_KEY in Script properties)" : "AI summary unavailable right now", ""]);
-    R.push(["", ""]);
-    head("Final Feedback (full text)");
-    if (fb.length) a.notes.forEach(function (x) { R.push([x.area || "", x.note]); });
-    else R.push(["(none)", ""]);
-  }
+  if (a.notes.length) a.notes.forEach(function (x) { R.push([x.area || "", x.note]); });
+  else R.push(["(none)", ""]);
   sh.getRange(1, 1, R.length, 2).setValues(R);
   bold.forEach(function (rn) { sh.getRange(rn, 1, 1, 2).setFontWeight("bold"); });
   sh.getRange(1, 1, 1, 1).setFontSize(14);
