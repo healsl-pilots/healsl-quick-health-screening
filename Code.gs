@@ -2,7 +2,7 @@
 // ^ Restricts this script to ONLY this spreadsheet (scope: spreadsheets.currentonly).
 //   This narrow scope is what lets it work under Google's Advanced Protection Program.
 /**
- * HEAL-SL Health Quick Checkup — role-based backend (Google Apps Script)
+ * HEAL-SL Health Quick Checkup. Role-based backend (Google Apps Script)
  * ---------------------------------------------------------------------------
  * One Google Sheet is the whole backend. Roles: field-worker, supervisor, admin.
  * Only the ADMIN sets this up once; everyone else just logs in and uses it.
@@ -10,7 +10,7 @@
  * - Login = username + PIN (PINs stored only as salted SHA-256 hashes).
  * - Login returns a day-keyed HMAC token that expires at end of day (even offline).
  * - Responses is an APPEND-ONLY, immutable log: the server only ever ADDS new
- *   record_ids and never edits/deletes a row — so data can't be overwritten or lost.
+ *   record_ids and never edits/deletes a row, so data can't be overwritten or lost.
  *   Ownership (username) is stamped from the token, not the device.
  * - Admin manages users + the area list, can pause access, and bump a data epoch
  *   to clean devices (the app uploads first, then erases ONLY synced records).
@@ -18,7 +18,7 @@
  * SETUP (admin, once):
  *  1. New Sheet → File ▸ Settings ▸ set your time zone (e.g. Africa/Freetown).
  *  2. Extensions ▸ Apps Script → paste this file → Save.
- *  3. Edit BOOTSTRAP_ADMIN below, then Run ▸ setup (authorise — only this sheet).
+ *  3. Edit BOOTSTRAP_ADMIN below, then Run setup (authorise, only this sheet).
  *  4. Deploy ▸ New deployment ▸ Web app: Execute as = Me, Access = Anyone. Copy /exec.
  */
 
@@ -68,6 +68,7 @@ function handle_(e, action) {
       case "setLock":       out = setLock_(tok_(p, body), body.locked, body.message); break;
       case "clearDevices":  out = clearDevices_(tok_(p, body)); break;
       case "buildDashboard":out = buildDashboard_(tok_(p, body)); break;
+      case "summarizeFeedback": out = summarizeFeedback_(tok_(p, body)); break;
       default:              out = { ok: false, error: "unknown_action" };
     }
   } catch (err) { out = { ok: false, error: String(err && err.message || err) }; }
@@ -164,25 +165,45 @@ function analytics_(token) {
     questions: { fever: yn("q1_fever"), bleeding: yn("q2_bleeding"), travel: yn("q3_travel"), sudden_death: yn("q4_sudden_death") },
     symptoms: symptoms, reactions: reactions, countries: countries, by_area: byArea, by_worker: byWorker,
     unease_notes: unease, unease_reasons: uneaseReasons, travelers: travel,
-    notes: notes, note_topics: topicClusters_(notes) };
+    notes: notes };
 }
 
-// Group notes by the meaningful words people actually used, so recurring topics
-// (e.g. "malaria", "water", "money") surface with a count + example notes.
-// The full note text is always shown too — nothing is summarised away.
-var NOTE_STOP = (function () { var s = {}; ("the a an and or but to of in on at for with from by is are was were be been being am i we you he she it they them us our your my me his her their this that these those have has had do does did not no yes will would can could should may might must as so if then else than too very just also more most some any all one two three there here what when where who why how about into out up down over under again only own same other none also said say says tell told ask asked want need get got go went come came make made take took give gave see saw know knew think people person household respondent thing things lot really still even much many we're dont don't can't").split(" ").forEach(function (w) { s[w] = 1; }); return s; })();
-function topicClusters_(notes) {
-  var df = {}, tokNotes = {};
-  notes.forEach(function (o, i) {
-    var seen = {};
-    String(o.note).toLowerCase().split(/[^a-z]+/).forEach(function (w) {
-      if (w.length < 3 || NOTE_STOP[w] || seen[w]) return;
-      seen[w] = 1; df[w] = (df[w] || 0) + 1; (tokNotes[w] = tokNotes[w] || []).push(i);
-    });
-  });
-  return Object.keys(df).filter(function (w) { return df[w] >= 2; })
-    .sort(function (a, b) { return df[b] - df[a]; }).slice(0, 12)
-    .map(function (w) { return { topic: w, count: df[w], examples: tokNotes[w].slice(0, 5).map(function (i) { return notes[i].note; }) }; });
+/* ---- Final Feedback: AI summary (server-side Gemini proxy; key in Script Properties) ----
+   Set GEMINI_API_KEY (and optionally GEMINI_MODEL) under Project Settings > Script properties.
+   Without a key it returns no_api_key and the app falls back to listing the feedback. */
+function summarizeFeedback_(token) {
+  requireRole_(token, ["admin"]);
+  var rows = respRows_(), items = [];
+  rows.forEach(function (r) { if (r.notes && String(r.notes).trim()) items.push(String(r.notes).trim()); });
+  if (!items.length) return { ok: true, total: 0, categories: [] };
+  var g = geminiSummarize_(items);
+  if (g.error) return { ok: false, error: g.error, total: items.length, feedback: items.slice(0, 200) };
+  return { ok: true, total: items.length, categories: g.categories };
+}
+function geminiSummarize_(items) {
+  var props = PropertiesService.getScriptProperties();
+  var key = props.getProperty("GEMINI_API_KEY");
+  if (!key) return { error: "no_api_key" };
+  var model = props.getProperty("GEMINI_MODEL") || "gemini-2.0-flash";
+  var list = items.slice(0, 500).map(function (t, i) { return (i + 1) + ". " + String(t).replace(/\s+/g, " "); }).join("\n");
+  var prompt = "You are analysing short open ended final feedback from a household health survey. " +
+    "Group the responses into at most 8 clear categories by their meaning, not by exact words. " +
+    "Merge equivalents: for example No, none, nothing, nothing for now, no comment all become one category called No feedback. " +
+    "Give each category a short plain English label (2 to 4 words, no dashes or special punctuation) and the number of responses in it. " +
+    "Put every response in exactly one category and make the counts add up to the total. " +
+    "Return ONLY JSON: {\"categories\":[{\"label\":\"No feedback\",\"count\":12}]}.";
+  var payload = { contents: [{ parts: [{ text: prompt + "\n\nRESPONSES:\n" + list }] }], generationConfig: { temperature: 0.2, responseMimeType: "application/json" } };
+  var res;
+  try {
+    res = UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent",
+      { method: "post", contentType: "application/json", headers: { "x-goog-api-key": key }, payload: JSON.stringify(payload), muteHttpExceptions: true });
+  } catch (e) { return { error: "ai_failed" }; }
+  if (res.getResponseCode() !== 200) return { error: "ai_failed" };
+  try {
+    var d = JSON.parse(res.getContentText());
+    var txt = d.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
+    return { categories: (JSON.parse(txt).categories) || [] };
+  } catch (e) { return { error: "ai_failed" }; }
 }
 
 /* ============================== ADMIN: USERS ============================== */
@@ -262,11 +283,11 @@ function buildDashboard_(token) {
   var R = [], bold = [];
   function head(s) { bold.push(R.length + 1); R.push([s, ""]); }
   function sorted(o) { return Object.keys(o).sort(function (x, y) { return o[y] - o[x]; }); }
-  head("HEAL-SL — Summary");
+  head("HEAL-SL Summary");
   R.push(["Generated", new Date().toISOString()]); R.push(["Total checkups", a.total]); R.push(["Captured today", a.today]); R.push(["", ""]);
   head("By area"); sorted(a.by_area).forEach(function (k) { R.push([k, a.by_area[k]]); }); if (!Object.keys(a.by_area).length) R.push(["(none)", 0]); R.push(["", ""]);
   head("By worker"); sorted(a.by_worker).forEach(function (k) { R.push([k, a.by_worker[k]]); }); if (!Object.keys(a.by_worker).length) R.push(["(none)", 0]); R.push(["", ""]);
-  head("Questions — Yes (No)"); var qStart = R.length + 1;
+  head("Questions (Yes responses)"); var qStart = R.length + 1;
   R.push(["Sudden high fever (21d)", a.questions.fever.yes]); R.push(["Unstoppable bleeding (21d)", a.questions.bleeding.yes]);
   R.push(["Recent travel (21d)", a.questions.travel.yes]); R.push(["Sudden death (4w)", a.questions.sudden_death.yes]);
   var qEnd = R.length; R.push(["", ""]);
@@ -279,24 +300,30 @@ function buildDashboard_(token) {
   head("Countries travelled (frequency)"); var ctr = sorted(a.countries);
   if (ctr.length) ctr.forEach(function (c) { R.push([c, a.countries[c]]); }); else R.push(["(none)", 0]);
   R.push(["", ""]);
-  head("Travellers (answered Yes) — what else they reported");
+  head("Travellers who answered Yes");
   R.push(["Travelled (Yes)", a.travelers.total]);
   R.push(["… also had fever", a.travelers.fever]);
   R.push(["… also had bleeding", a.travelers.bleeding]);
   R.push(["… had a sudden death", a.travelers.death]);
   sorted(a.travelers.symptoms).forEach(function (s) { R.push(["… symptom: " + s, a.travelers.symptoms[s]]); });
   R.push(["", ""]);
-  head("Uneasy — reasons given");
+  head("Uneasy reasons given");
   if (a.unease_reasons.length) a.unease_reasons.forEach(function (u) { R.push([u.q + (u.area ? " (" + u.area + ")" : ""), u.note]); });
   else R.push(["(none)", ""]);
   R.push(["", ""]);
-  head("Respondent notes — main topics (" + a.notes.length + " notes)");
-  if (a.note_topics.length) a.note_topics.forEach(function (tp) { R.push([tp.topic, tp.count + " notes"]); });
-  else R.push(["(no repeated topics yet)", ""]);
-  R.push(["", ""]);
-  head("Respondent notes — full text");
-  if (a.notes.length) a.notes.forEach(function (x) { R.push([x.area || "", x.note]); });
-  else R.push(["(none)", ""]);
+  head("Final Feedback (" + a.notes.length + " responses)");
+  var fb = a.notes.map(function (x) { return x.note; });
+  var g = fb.length ? geminiSummarize_(fb) : { categories: [] };
+  if (g.categories) {
+    if (g.categories.length) g.categories.forEach(function (c) { R.push([c.label, c.count]); });
+    else R.push(["(no feedback yet)", ""]);
+  } else {
+    R.push([g.error === "no_api_key" ? "AI summary off (set GEMINI_API_KEY in Script properties)" : "AI summary unavailable right now", ""]);
+    R.push(["", ""]);
+    head("Final Feedback (full text)");
+    if (fb.length) a.notes.forEach(function (x) { R.push([x.area || "", x.note]); });
+    else R.push(["(none)", ""]);
+  }
   sh.getRange(1, 1, R.length, 2).setValues(R);
   bold.forEach(function (rn) { sh.getRange(rn, 1, 1, 2).setFontWeight("bold"); });
   sh.getRange(1, 1, 1, 1).setFontSize(14);

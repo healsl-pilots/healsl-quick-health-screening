@@ -62,6 +62,20 @@ q3_travel_count, q3_travel_country, q3_travel_date, q4_sudden_death, q4_death_co
 reaction_q1, unease_note_q1, reaction_q2, unease_note_q2, reaction_q3, unease_note_q3,
 reaction_q4, unease_note_q4, gps_lat, gps_lng, notes`
 
+## AI Final Feedback summary (optional)
+
+Admin can group the open-ended Final Feedback into clear categories (e.g. "No feedback",
+"Wants more medicine", "Malaria concerns") with counts, in the app (Analysis, "Summarize
+feedback") and on the Sheet Dashboard. This calls Google's Gemini from the Apps Script:
+
+1. Get a free key from Google AI Studio (aistudio.google.com).
+2. Apps Script: Project Settings, Script properties, add `GEMINI_API_KEY` = your key
+   (optionally `GEMINI_MODEL`, default `gemini-2.0-flash`). The key stays in the script,
+   never in this repo.
+3. Re-deploy the web app. This adds a "connect to an external service" permission, so you
+   re-authorize once. If Advanced Protection blocks it, host the script on a Google account
+   not in Advanced Protection. Without a key, the app just lists the feedback instead.
+
 ## Files
 
 `index.html` · `service-worker.js` · `manifest.webmanifest` · `qrcode.min.js` ·

@@ -105,7 +105,7 @@
         <div class="card"><label class="field"><span>Data link (Apps Script /exec URL)</span>
           <input type="text" id="setupApi" placeholder="https://script.google.com/macros/s/…/exec" inputmode="url"></label>
           <button class="btn primary" id="setupSave">Connect</button><p class="err" id="setupErr"></p>
-          <p class="hint">Workers don't need this — scanning the install QR connects them automatically.</p>
+          <p class="hint">Workers don't need this. Scanning the install QR connects them automatically.</p>
           <button class="btn gray sm" id="setupBack" style="margin:8px auto 0;display:none">Back</button></div></div>
     </section>
 
@@ -176,7 +176,7 @@
       <div class="card"><b>Add / update user</b>
         <label class="field"><span>Full name</span><input type="text" id="nuName" placeholder="e.g. Aminata Kamara"></label>
         <label class="field"><span>Username</span><input type="text" id="nuUser" autocapitalize="none" placeholder="e.g. akamara"></label>
-        <label class="field"><span>ID code (digits — prefix for record IDs, e.g. 121)</span><input type="tel" id="nuCode" inputmode="numeric" placeholder="e.g. 121"></label>
+        <label class="field"><span>ID code (digits, used as the prefix for record IDs, e.g. 121)</span><input type="tel" id="nuCode" inputmode="numeric" placeholder="e.g. 121"></label>
         <label class="field"><span>Role</span><select id="nuRole"><option value="field-worker">Field worker</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option></select></label>
         <label class="field"><span>PIN (4–8 digits)</span><input type="tel" id="nuPin" inputmode="numeric" placeholder="PIN"></label>
         <button class="btn primary" id="nuSave">Save user</button><p class="err" id="nuErr"></p></div>
@@ -185,7 +185,7 @@
     <!-- AREAS (admin) -->
     <section id="v-areas" class="view">
       <h2 class="sec" style="margin-top:4px">Areas</h2>
-      <div class="card"><p class="hint" style="margin-top:0">Workers pick from this list — they never type area names. One per line.</p>
+      <div class="card"><p class="hint" style="margin-top:0">Workers pick from this list, so they never type area names. One per line.</p>
         <textarea id="areaList" style="min-height:160px" placeholder="Waterloo&#10;Hastings&#10;Kissy"></textarea>
         <button class="btn primary" id="areaSave" style="margin-top:10px">Save areas</button><p class="err" id="areaErr"></p></div>
     </section>
@@ -197,14 +197,14 @@
         <label class="field"><span>Message when paused (optional)</span><input type="text" id="lockMessage" placeholder="e.g. Paused for the day"></label>
         <div class="row"><button class="btn danger" id="btnLock">⏸ Pause</button><button class="btn soft" id="btnUnlock">▶ Resume</button></div>
         <p class="hint">Logins also expire each day automatically, even offline.</p></div>
-      <div class="card"><b>End of day — clean devices</b>
+      <div class="card"><b>End of day: clean devices</b>
         <p class="hint">Each phone uploads anything pending, then erases its local copy. Unsynced data is never deleted.</p>
         <button class="btn danger" id="btnClear">🧹 Clean all devices</button></div>
     </section>
 
     <!-- SHARE -->
     <section id="v-share" class="view">
-      <div class="card"><h2 style="margin:0 0 6px">Install &amp; share</h2><p class="hint">Scan to install on another phone — the data link is included, so they only log in.</p>
+      <div class="card"><h2 style="margin:0 0 6px">Install &amp; share</h2><p class="hint">Scan to install on another phone. The data link is included, so they only log in.</p>
         <div id="qrbox" style="margin-top:12px"></div><div class="urlbox" id="shareUrl"></div>
         <button class="btn soft" id="copyUrl">⧉ Copy link</button><button class="btn ghost" id="printBtn" style="margin-top:10px">🖨 Print poster</button></div>
       <button class="btn gray" id="shareHome">Back</button>
@@ -256,7 +256,7 @@ function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");cl
 /* ---- API ---- */
 function jsonp(params){return new Promise((resolve,reject)=>{const ep=endpoint();if(!ep)return reject(new Error("no_endpoint"));
   const cb="__heal_"+Math.random().toString(36).slice(2),s=document.createElement("script");
-  const to=setTimeout(()=>{cleanup();reject(new Error("timeout"));},15000);
+  const to=setTimeout(()=>{cleanup();reject(new Error("timeout"));},25000);
   function cleanup(){delete window[cb];if(s.parentNode)s.remove();clearTimeout(to);}
   window[cb]=(d)=>{cleanup();resolve(d);};
   s.src=ep+(ep.indexOf("?")>=0?"&":"?")+new URLSearchParams(Object.assign({},params,{callback:cb})).toString();
@@ -362,13 +362,13 @@ function renderStep(){const key=STEPS[stepIx];$("#progBar").style.width=(stepIx/
     <div class="qtext">In the past 4 weeks, did anyone <b>die suddenly</b> after some of these symptoms (fever, bleeding, vomiting …)?</div>${yesNo("q4_sudden_death",draft.q4_sudden_death)}
     <div id="x" style="${y?'':'display:none'}"><label class="field"><span>How many?</span><input type="number" min="0" id="f_q4c" value="${esc(draft.q4_death_count)}" inputmode="numeric"></label></div>${reactBlock("reaction_q4")}</div>`;}
   else if(key==="review"){sanitizeDraft();c.innerHTML=`<div class="card"><div class="qnum">Review &amp; save</div><div class="qtext" style="font-size:18px">Check answers</div><div class="rev">
-    ${rl("ID",draft.household_id)}${rl("Area",draft.area||"—")}
+    ${rl("ID",draft.household_id)}${rl("Area",draft.area||"-")}
     ${rl("Fever (21d)",yn(draft.q1_fever,draft.q1_fever_count))}${draft.q1_symptoms.length?rl("Symptoms",draft.q1_symptoms.join(", ")):""}
     ${rl("Bleeding (21d)",yn(draft.q2_bleeding,draft.q2_bleeding_count))}
-    ${rl("Travel (21d)",draft.q3_travel==="Yes"?("Yes — "+[draft.q3_travel_count&&("n="+draft.q3_travel_count),draft.q3_travel_country,draft.q3_travel_date].filter(Boolean).join(", ")):(draft.q3_travel||"—"))}
+    ${rl("Travel (21d)",draft.q3_travel==="Yes"?("Yes: "+[draft.q3_travel_count&&("n="+draft.q3_travel_count),draft.q3_travel_country,draft.q3_travel_date].filter(Boolean).join(", ")):(draft.q3_travel||"-"))}
     ${rl("Sudden death (4w)",yn(draft.q4_sudden_death,draft.q4_death_count))}${rl("Reactions",reactSum())}
     ${["q1","q2","q3","q4"].map(s=>draft["unease_note_"+s]?rl("Unease ("+s.toUpperCase()+")",draft["unease_note_"+s]):"").join("")}</div>
-    <label class="field"><span>Notes (optional)</span><textarea id="f_notes" placeholder="Anything to add…">${esc(draft.notes)}</textarea></label></div>`;}
+    <label class="field"><span>Final feedback (optional)</span><textarea id="f_notes" placeholder="Anything they want to add">${esc(draft.notes)}</textarea></label></div>`;}
   $("#backBtn").textContent=stepIx===0?"Cancel":"Back";$("#nextBtn").textContent=key==="review"?"✔ Save":"Next";bindStep(key);saveDraft();}
 
 function bindStep(key){
@@ -403,14 +403,14 @@ function submitDraft(){sanitizeDraft();draft.submitted_at=new Date().toISOString
   const recs=getRecords();recs.push(draft);setRecords(recs);              // persist BEFORE anything else
   setSeq(draft.username,getSeq(draft.username)+1);del(K.draft);
   $("#doneId").textContent="ID: "+draft.household_id;show("done");autoSync();}
-function yn(v,c){return v==="Yes"?("Yes"+(c?` (${c})`:"")):(v||"—");}
+function yn(v,c){return v==="Yes"?("Yes"+(c?` (${c})`:"")):(v||"-");}
 function rl(k,v){return `<div class="line"><span>${k}</span><b>${esc(String(v))}</b></div>`;}
-function reactSum(){const m={reaction_q1:"Q1",reaction_q2:"Q2",reaction_q3:"Q3",reaction_q4:"Q4"};const p=Object.keys(m).filter(k=>draft[k]).map(k=>`${m[k]}:${draft[k]}`);return p.length?p.join("  "):"—";}
+function reactSum(){const m={reaction_q1:"Q1",reaction_q2:"Q2",reaction_q3:"Q3",reaction_q4:"Q4"};const p=Object.keys(m).filter(k=>draft[k]).map(k=>`${m[k]}:${draft[k]}`);return p.length?p.join("  "):"-";}
 
 /* ---- sync ---- */
 let syncing=false;
 async function syncNow(quiet){const s=session();if(!s)return;if(!endpoint()){if(!quiet)toast("Not connected.");return;}
-  if(!navigator.onLine){if(!quiet)toast("No internet — will sync later.");return;}
+  if(!navigator.onLine){if(!quiet)toast("No internet. Will sync later.");return;}
   const mine=getRecords().filter(r=>r.username===s.username&&r._status!=="synced");if(!mine.length){if(!quiet)toast("All synced.");return;}
   if(s.token==="OFFLINE"&&!await ensureToken()){if(!quiet)toast("Will sync when back online.");return;}
   if(syncing)return;syncing=true;
@@ -418,7 +418,7 @@ async function syncNow(quiet){const s=session();if(!s)return;if(!endpoint()){if(
     for(const grp of chunk(mine.map(r=>r.record_id),40)){try{const res=await api("check",{ids:grp.join(",")});(res&&res.present||[]).forEach(id=>present.add(id));}catch(e){}}
     let n=0;const all=getRecords();all.forEach(r=>{if(present.has(r.record_id)&&r._status!=="synced"){r._status="synced";n++;}});setRecords(all);
     if(!quiet||n)toast(n?`${n} synced ✓`:"Sync attempted.");
-  }catch(e){if(!quiet)toast("Sync failed — saved locally.");}
+  }catch(e){if(!quiet)toast("Sync failed. Saved locally.");}
   finally{syncing=false;renderHome();if($("#v-records").classList.contains("active"))renderRecords();}}
 function autoSync(){if(session()&&endpoint()&&navigator.onLine)syncNow(true);}
 
@@ -446,7 +446,7 @@ async function loadAnalysis(){const body=$("#analysisBody");body.innerHTML=`<p c
     const syms=Object.keys(a.symptoms).sort((x,y)=>a.symptoms[y]-a.symptoms[x]),sm=syms.length?a.symptoms[syms[0]]:0;
     h+=`<div class="card"><b>Symptoms</b>${syms.length?syms.map(s=>bar(s,a.symptoms[s],sm,"amber")).join(""):'<p class="hint">None yet.</p>'}</div>`;
     const ars=Object.keys(a.by_area||{}).sort((x,y)=>a.by_area[y]-a.by_area[x]),am=ars.length?a.by_area[ars[0]]:0;
-    h+=`<div class="card"><b>By area</b>${ars.length?ars.map(s=>bar(s,a.by_area[s],am,"blue")).join(""):'<p class="hint">—</p>'}</div>`;
+    h+=`<div class="card"><b>By area</b>${ars.length?ars.map(s=>bar(s,a.by_area[s],am,"blue")).join(""):'<p class="hint">-</p>'}</div>`;
     const cts=Object.keys(a.countries||{}).sort((x,y)=>a.countries[y]-a.countries[x]),cm=cts.length?a.countries[cts[0]]:0;
     h+=`<div class="card"><b>Countries travelled</b>${cts.length?cts.map(s=>bar(s,a.countries[s],cm,"")).join(""):'<p class="hint">None yet.</p>'}</div>`;
     const order=["At ease","Neutral","Uneasy"],qn={reaction_q1:"Q1 fever",reaction_q2:"Q2 bleeding",reaction_q3:"Q3 travel",reaction_q4:"Q4 death"};
@@ -461,12 +461,23 @@ async function loadAnalysis(){const body=$("#analysisBody");body.innerHTML=`<p c
       `<div class="line"><span>…sudden death</span><b>${tv.death||0}</b></div></div>`+
       (tsy.length?`<div class="sub">Symptoms among travellers</div>`+tsy.map(s=>bar(s,tv.symptoms[s],tv.symptoms[tsy[0]],"amber")).join(""):``)+`</div>`;
     const ur=a.unease_reasons||[];
-    h+=`<div class="card"><b>Uneasy — reasons (${ur.length})</b>`+(ur.length?ur.map(u=>`<div style="border-top:1px solid var(--line);padding:8px 0"><div style="color:var(--muted);font-size:12px">${esc(u.q)}${u.area?" · "+esc(u.area):""}</div><div>${esc(u.note)}</div></div>`).join(""):`<p class="hint" style="margin-top:6px">None yet.</p>`)+`</div>`;
-    const nts=a.notes||[],tps=a.note_topics||[];
-    h+=`<div class="card"><b>Respondent notes (${nts.length})</b>`+
-      (tps.length?`<div class="sub">Main topics mentioned</div><div class="rev">`+tps.map(tp=>`<div class="line"><span>${esc(tp.topic)}</span><b>${tp.count} notes</b></div>`).join("")+`</div>`:``)+
-      (nts.length?`<div class="sub">All notes</div>`+nts.map(x=>`<div style="border-top:1px solid var(--line);padding:8px 0"><div style="color:var(--muted);font-size:12px">${esc(x.area||"")}</div><div>${esc(x.note)}</div></div>`).join(""):`<p class="hint" style="margin-top:6px">None yet.</p>`)+`</div>`;
-    body.innerHTML=h;}catch(e){body.innerHTML=`<p class="hint">${navigator.onLine?"Could not load.":"Offline."}</p>`;}}
+    h+=`<div class="card"><b>Uneasy reasons (${ur.length})</b>`+(ur.length?ur.map(u=>`<div style="border-top:1px solid var(--line);padding:8px 0"><div style="color:var(--muted);font-size:12px">${esc(u.q)}${u.area?" · "+esc(u.area):""}</div><div>${esc(u.note)}</div></div>`).join(""):`<p class="hint" style="margin-top:6px">None yet.</p>`)+`</div>`;
+    const fbN=(a.notes||[]).length;
+    h+=`<div class="card"><b>Final Feedback (${fbN})</b><p class="hint" style="margin-top:2px">Group the written feedback into clear categories.</p><button class="btn soft sm" id="fbAi" style="margin-top:6px">✨ Summarize feedback</button><div id="fbOut"></div></div>`;
+    body.innerHTML=h;
+    if($("#fbAi"))$("#fbAi").onclick=summarizeFeedbackUI;
+  }catch(e){body.innerHTML=`<p class="hint">${navigator.onLine?"Could not load.":"Offline."}</p>`;}}
+async function summarizeFeedbackUI(){
+  const out=$("#fbOut");if(!out)return;out.innerHTML=`<p class="hint" style="margin-top:8px">Summarizing…</p>`;
+  try{const r=await api("summarizeFeedback",{});
+    if(r&&r.ok){ if(!r.total){out.innerHTML=`<p class="hint" style="margin-top:8px">No feedback yet.</p>`;return;}
+      out.innerHTML=`<div class="rev" style="margin-top:8px">`+(r.categories||[]).map(c=>`<div class="line"><span>${esc(c.label)}</span><b>${c.count}</b></div>`).join("")+`</div>`;
+    }else if(r&&r.error==="no_api_key"){
+      out.innerHTML=`<p class="hint" style="margin-top:8px">AI summary not set up. Add a Gemini key in Apps Script (Script properties: GEMINI_API_KEY). Feedback so far:</p>`+(r.feedback||[]).map(t=>`<div style="border-top:1px solid var(--line);padding:8px 0">${esc(t)}</div>`).join("");
+    }else{
+      out.innerHTML=`<p class="hint" style="margin-top:8px">Could not summarize now. Feedback so far:</p>`+(((r&&r.feedback)||[]).map(t=>`<div style="border-top:1px solid var(--line);padding:8px 0">${esc(t)}</div>`).join("")||`<p class="hint">None.</p>`);
+    }
+  }catch(e){out.innerHTML=`<p class="hint" style="margin-top:8px">${navigator.onLine?"Could not summarize.":"Offline."}</p>`;}}
 
 async function loadUsers(){const box=$("#userList");box.innerHTML=`<p class="hint" style="padding:8px">Loading…</p>`;
   try{const r=await api("listUsers",{});if(!r||!r.ok)throw r;
@@ -528,7 +539,7 @@ $("#shareHome").onclick=()=>show(roleHome());
 $("#copyUrl").onclick=()=>{navigator.clipboard?.writeText(appUrl()).then(()=>toast("Copied."),()=>toast(appUrl()));};
 $("#printBtn").onclick=()=>{drawQR("posterQr",appUrl());$("#posterUrl").textContent=appUrl();window.print();};
 window.addEventListener("online",()=>{if(session())checkIn();autoSync();});
-setInterval(()=>{if(session()&&navigator.onLine)syncNow(true);},60000); // periodic safety sync — no data left behind
+setInterval(()=>{if(session()&&navigator.onLine)syncNow(true);},60000); // periodic safety sync; no data left behind
 
 /* ---- boot ---- */
 function boot(){const p=new URLSearchParams(location.search).get("api");
