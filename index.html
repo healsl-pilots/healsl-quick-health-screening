@@ -452,7 +452,17 @@ async function loadAnalysis(){const body=$("#analysisBody");body.innerHTML=`<p c
     const order=["At ease","Neutral","Uneasy"],qn={reaction_q1:"Q1 fever",reaction_q2:"Q2 bleeding",reaction_q3:"Q3 travel",reaction_q4:"Q4 death"};
     h+=`<div class="card"><b>Reactions</b><p class="hint" style="margin-top:2px">Uneasy notes: ${a.unease_notes}</p>`;
     Object.keys(qn).forEach(k=>{const d=a.reactions[k]||{},sum=order.reduce((x,o)=>x+(d[o]||0),0);h+=`<div style="margin:8px 0 2px;font-size:13px;color:var(--muted)">${qn[k]}</div>`+order.map(o=>bar(o,d[o]||0,sum,o==="Uneasy"?"red":"")).join("");});
-    h+=`</div>`;body.innerHTML=h;}catch(e){body.innerHTML=`<p class="hint">${navigator.onLine?"Could not load.":"Offline."}</p>`;}}
+    h+=`</div>`;
+    const tv=a.travelers||{symptoms:{}};const tsy=Object.keys(tv.symptoms||{}).sort((x,y)=>tv.symptoms[y]-tv.symptoms[x]);
+    h+=`<div class="card"><b>Travellers (answered Yes)</b><div class="rev">`+
+      `<div class="line"><span>Travelled</span><b>${tv.total||0}</b></div>`+
+      `<div class="line"><span>…also fever</span><b>${tv.fever||0}</b></div>`+
+      `<div class="line"><span>…also bleeding</span><b>${tv.bleeding||0}</b></div>`+
+      `<div class="line"><span>…sudden death</span><b>${tv.death||0}</b></div></div>`+
+      (tsy.length?`<div class="sub">Symptoms among travellers</div>`+tsy.map(s=>bar(s,tv.symptoms[s],tv.symptoms[tsy[0]],"amber")).join(""):``)+`</div>`;
+    const ur=a.unease_reasons||[];
+    h+=`<div class="card"><b>Uneasy — reasons (${ur.length})</b>`+(ur.length?ur.map(u=>`<div style="border-top:1px solid var(--line);padding:8px 0"><div style="color:var(--muted);font-size:12px">${esc(u.q)}${u.area?" · "+esc(u.area):""}</div><div>${esc(u.note)}</div></div>`).join(""):`<p class="hint" style="margin-top:6px">None yet.</p>`)+`</div>`;
+    body.innerHTML=h;}catch(e){body.innerHTML=`<p class="hint">${navigator.onLine?"Could not load.":"Offline."}</p>`;}}
 
 async function loadUsers(){const box=$("#userList");box.innerHTML=`<p class="hint" style="padding:8px">Loading…</p>`;
   try{const r=await api("listUsers",{});if(!r||!r.ok)throw r;
