@@ -462,6 +462,10 @@ async function loadAnalysis(){const body=$("#analysisBody");body.innerHTML=`<p c
       (tsy.length?`<div class="sub">Symptoms among travellers</div>`+tsy.map(s=>bar(s,tv.symptoms[s],tv.symptoms[tsy[0]],"amber")).join(""):``)+`</div>`;
     const ur=a.unease_reasons||[];
     h+=`<div class="card"><b>Uneasy — reasons (${ur.length})</b>`+(ur.length?ur.map(u=>`<div style="border-top:1px solid var(--line);padding:8px 0"><div style="color:var(--muted);font-size:12px">${esc(u.q)}${u.area?" · "+esc(u.area):""}</div><div>${esc(u.note)}</div></div>`).join(""):`<p class="hint" style="margin-top:6px">None yet.</p>`)+`</div>`;
+    const nts=a.notes||[],tps=a.note_topics||[];
+    h+=`<div class="card"><b>Respondent notes (${nts.length})</b>`+
+      (tps.length?`<div class="sub">Main topics mentioned</div><div class="rev">`+tps.map(tp=>`<div class="line"><span>${esc(tp.topic)}</span><b>${tp.count} notes</b></div>`).join("")+`</div>`:``)+
+      (nts.length?`<div class="sub">All notes</div>`+nts.map(x=>`<div style="border-top:1px solid var(--line);padding:8px 0"><div style="color:var(--muted);font-size:12px">${esc(x.area||"")}</div><div>${esc(x.note)}</div></div>`).join(""):`<p class="hint" style="margin-top:6px">None yet.</p>`)+`</div>`;
     body.innerHTML=h;}catch(e){body.innerHTML=`<p class="hint">${navigator.onLine?"Could not load.":"Offline."}</p>`;}}
 
 async function loadUsers(){const box=$("#userList");box.innerHTML=`<p class="hint" style="padding:8px">Loading…</p>`;

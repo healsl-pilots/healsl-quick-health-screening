@@ -1,5 +1,5 @@
 /* HEAL-SL Health Quick Checkup — offline app shell */
-const CACHE = "heal-sl-v10";
+const CACHE = "heal-sl-v12";
 const SHELL = [
   "./",
   "index.html",

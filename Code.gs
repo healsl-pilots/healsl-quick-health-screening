@@ -141,6 +141,7 @@ function analytics_(token) {
   var uneaseReasons = [];
   var travel = { total: 0, fever: 0, bleeding: 0, death: 0, symptoms: {} };
   var NOTE_Q = { unease_note_q1: "Q1 fever", unease_note_q2: "Q2 bleeding", unease_note_q3: "Q3 travel", unease_note_q4: "Q4 death" };
+  var notes = [];
   rows.forEach(function (r) {
     if (String(r.submitted_at).slice(0, 10) === today) todayN++;
     var ar = r.area || "(none)"; byArea[ar] = (byArea[ar] || 0) + 1;
@@ -157,11 +158,31 @@ function analytics_(token) {
       if (r.q4_sudden_death === "Yes") travel.death++;
       syms.forEach(function (s) { travel.symptoms[s] = (travel.symptoms[s] || 0) + 1; });
     }
+    if (r.notes && String(r.notes).trim()) notes.push({ area: r.area || "", note: String(r.notes).trim() });
   });
   return { ok: true, total: rows.length, today: todayN,
     questions: { fever: yn("q1_fever"), bleeding: yn("q2_bleeding"), travel: yn("q3_travel"), sudden_death: yn("q4_sudden_death") },
     symptoms: symptoms, reactions: reactions, countries: countries, by_area: byArea, by_worker: byWorker,
-    unease_notes: unease, unease_reasons: uneaseReasons, travelers: travel };
+    unease_notes: unease, unease_reasons: uneaseReasons, travelers: travel,
+    notes: notes, note_topics: topicClusters_(notes) };
+}
+
+// Group notes by the meaningful words people actually used, so recurring topics
+// (e.g. "malaria", "water", "money") surface with a count + example notes.
+// The full note text is always shown too — nothing is summarised away.
+var NOTE_STOP = (function () { var s = {}; ("the a an and or but to of in on at for with from by is are was were be been being am i we you he she it they them us our your my me his her their this that these those have has had do does did not no yes will would can could should may might must as so if then else than too very just also more most some any all one two three there here what when where who why how about into out up down over under again only own same other none also said say says tell told ask asked want need get got go went come came make made take took give gave see saw know knew think people person household respondent thing things lot really still even much many we're dont don't can't").split(" ").forEach(function (w) { s[w] = 1; }); return s; })();
+function topicClusters_(notes) {
+  var df = {}, tokNotes = {};
+  notes.forEach(function (o, i) {
+    var seen = {};
+    String(o.note).toLowerCase().split(/[^a-z]+/).forEach(function (w) {
+      if (w.length < 3 || NOTE_STOP[w] || seen[w]) return;
+      seen[w] = 1; df[w] = (df[w] || 0) + 1; (tokNotes[w] = tokNotes[w] || []).push(i);
+    });
+  });
+  return Object.keys(df).filter(function (w) { return df[w] >= 2; })
+    .sort(function (a, b) { return df[b] - df[a]; }).slice(0, 12)
+    .map(function (w) { return { topic: w, count: df[w], examples: tokNotes[w].slice(0, 5).map(function (i) { return notes[i].note; }) }; });
 }
 
 /* ============================== ADMIN: USERS ============================== */
@@ -267,6 +288,14 @@ function buildDashboard_(token) {
   R.push(["", ""]);
   head("Uneasy — reasons given");
   if (a.unease_reasons.length) a.unease_reasons.forEach(function (u) { R.push([u.q + (u.area ? " (" + u.area + ")" : ""), u.note]); });
+  else R.push(["(none)", ""]);
+  R.push(["", ""]);
+  head("Respondent notes — main topics (" + a.notes.length + " notes)");
+  if (a.note_topics.length) a.note_topics.forEach(function (tp) { R.push([tp.topic, tp.count + " notes"]); });
+  else R.push(["(no repeated topics yet)", ""]);
+  R.push(["", ""]);
+  head("Respondent notes — full text");
+  if (a.notes.length) a.notes.forEach(function (x) { R.push([x.area || "", x.note]); });
   else R.push(["(none)", ""]);
   sh.getRange(1, 1, R.length, 2).setValues(R);
   bold.forEach(function (rn) { sh.getRange(rn, 1, 1, 2).setFontWeight("bold"); });
